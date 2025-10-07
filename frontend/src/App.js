@@ -1,20 +1,110 @@
 import logo from './logo.svg';
 import './App.css';
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { useState, useEffect } from 'react';
+import Login from './components/Login';
+import Register from './components/Register';
+import { authService } from './services/authService';
+
+function Home({ user, onLogout }) {
+  return (
+    <div className="App">
+      <header className="App-header">
+        <img src={logo} className="App-logo" alt="logo" />
+        <p>Welcome to SOEN 343 Project</p>
+        {user ? (
+          <div>
+            <p>Hello, {user.email}!</p>
+            <p>You are logged in!</p>
+            <button 
+              onClick={onLogout}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#dc3545',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              Logout
+            </button>
+          </div>
+        ) : (
+          <div>
+            <p>Please login to continue</p>
+            <div style={{ marginTop: '20px' }}>
+              <Link 
+                to="/login" 
+                style={{
+                  marginRight: '10px',
+                  padding: '10px 20px',
+                  backgroundColor: '#007bff',
+                  color: 'white',
+                  textDecoration: 'none',
+                  borderRadius: '4px'
+                }}
+              >
+                Login
+              </Link>
+              <Link 
+                to="/register"
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#28a745',
+                  color: 'white',
+                  textDecoration: 'none',
+                  borderRadius: '4px'
+                }}
+              >
+                Register
+              </Link>
+            </div>
+          </div>
+        )}
+      </header>
+    </div>
+  );
+}
 
 function App() {
-  return (
-      <Router>
-        <nav>
-          {/* Links to navigate without reloading */}
-          <Link to="/">Home</Link>
-          <Link to="/test"></Link>
-        </nav>
+  const [user, setUser] = useState(null);
 
-        <Routes>
-          <Route path="/" element={<Home />} />
-        </Routes>
-      </Router>
+  useEffect(() => {
+    const unsubscribe = authService.onAuthStateChanged((user) => {
+      setUser(user);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await authService.logout();
+    setUser(null);
+  };
+
+  return (
+    <Router>
+      <nav style={{ padding: '10px', backgroundColor: '#f8f9fa' }}>
+        <Link to="/" style={{ marginRight: '20px', textDecoration: 'none' }}>Home</Link>
+        {!user && (
+          <>
+            <Link to="/login" style={{ marginRight: '20px', textDecoration: 'none' }}>Login</Link>
+            <Link to="/register" style={{ textDecoration: 'none' }}>Register</Link>
+          </>
+        )}
+      </nav>
+
+      <Routes>
+        <Route path="/" element={<Home user={user} onLogout={handleLogout} />} />
+        <Route path="/login" element={
+          <Login onLogin={(user) => setUser(user)} />
+        } />
+        <Route path="/register" element={
+          <Register onRegister={(user) => setUser(user)} />
+        } />
+      </Routes>
+    </Router>
   );
 }
 
