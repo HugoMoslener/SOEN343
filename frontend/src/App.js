@@ -1,21 +1,11 @@
-import logo from './logo.svg';
 import './App.css';
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-
-function App() {
-  return (
-      <Router>
-        <nav>
-          {/* Links to navigate without reloading */}
-          <Link to="/">Home</Link>
-          <Link to="/test"></Link>
-        </nav>
-
-        <Routes>
-          <Route path="/" element={<Home />} />
-        </Routes>
-      </Router>
-  );
+//import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import HealthCheck from './HealthCheck';
+export default function App() {
+    return (
+        <div style={{padding: 24}}>
+            <h1>Proxy check</h1>
+            <HealthCheck/>
+        </div>
+    );
 }
-
-export default App;
