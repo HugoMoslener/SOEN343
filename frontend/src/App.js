@@ -1,21 +1,24 @@
-import logo from './logo.svg';
-import './App.css';
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import React from "react";
+import "./App.css";
 
 function App() {
-  return (
-      <Router>
-        <nav>
-          {/* Links to navigate without reloading */}
-          <Link to="/">Home</Link>
-          <Link to="/test"></Link>
-        </nav>
-
-        <Routes>
-          <Route path="/" element={<Home />} />
-        </Routes>
-      </Router>
-  );
+    return (
+        <div className="App" style={{ textAlign: "center", marginTop: "100px" }}>
+            <h1>Welcome to My React App</h1>
+            <p>This is the default homepage.</p>
+            <button
+                onClick={() => alert("Hello from React!")}
+                style={{
+                    padding: "10px 20px",
+                    fontSize: "16px",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                }}
+            >
+                Click Me
+            </button>
+        </div>
+    );
 }
 
 export default App;
