@@ -7,10 +7,10 @@ import Register from './components/Register';
 import { authService } from './services/authService';
 
 function Home({ user, onLogout }) {
+
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
         <p>Welcome to SOEN 343 Project</p>
         {user ? (
           <div>
