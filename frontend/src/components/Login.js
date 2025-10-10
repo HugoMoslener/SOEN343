@@ -1,21 +1,28 @@
 import React, { useState } from 'react';
 import { authService } from '../services/authService';
+import { useNavigate } from 'react-router-dom';
+
+
 
 const Login = ({ onLogin }) => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
-    const result = await authService.login(email, password);
+    const firebaseEmail = username + "@TopFounders.com";
+    const result = await authService.login(firebaseEmail, password);
     
     if (result.success) {
       onLogin(result.user);
+
+      navigate('/');
+
     } else {
       setError(result.error);
     }
@@ -28,11 +35,11 @@ const Login = ({ onLogin }) => {
       <h2>Login</h2>
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '15px' }}>
-          <label>Email:</label>
+          <label>Username:</label>
           <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             required
             style={{ width: '100%', padding: '8px', marginTop: '5px' }}
           />
