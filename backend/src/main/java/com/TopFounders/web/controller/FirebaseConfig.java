@@ -18,7 +18,7 @@ public class FirebaseConfig {
     @PostConstruct
     public void initialize() {
         try {
-            InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream("firebase/topfounders-66244-firebase-adminsdk-fbsvc-fad18556df.json");
+            InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream("firebase/firebase.json");
 
             if (FirebaseApp.getApps().isEmpty()) {
                 FirebaseOptions options = FirebaseOptions.builder()
