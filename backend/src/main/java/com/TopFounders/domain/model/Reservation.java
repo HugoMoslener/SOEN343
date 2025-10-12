@@ -9,7 +9,6 @@ public class Reservation {
     private Time time ;
     private Rider rider;
 
-
     public String getReservationID() {
         return reservationID;
     }
