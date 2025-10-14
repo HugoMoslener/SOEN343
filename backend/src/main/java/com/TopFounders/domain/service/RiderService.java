@@ -50,6 +50,7 @@ public class RiderService {
 
         if(document.exists()) {
             rider = document.toObject(Rider.class);
+            System.out.println(rider.getUsername() + "cdvfvfrv");
             return rider;
         }else {
             return null;

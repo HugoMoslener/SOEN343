@@ -11,6 +11,30 @@ const Login = ({ onLogin }) => {
   const [loading, setLoading] = useState(false);
    const navigate = useNavigate();
 
+  const fetchUser = async () => {
+      try {
+        const response = await fetch("/api/signIn/getUserData", {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body:username, // send username as JSON string
+        });
+
+        const result = await response.json();
+        localStorage.setItem("username", result.username);
+        localStorage.setItem("address", result.address);
+        localStorage.setItem("role", result.role);
+        localStorage.setItem("email", result.email);
+        localStorage.setItem("fullName", result.fullName);
+
+        if(result.role === "rider"){
+         localStorage.setItem("paymentInformation", result.paymentInformation);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -19,6 +43,7 @@ const Login = ({ onLogin }) => {
     const result = await authService.login(firebaseEmail, password);
     
     if (result.success) {
+      await fetchUser();
       onLogin(result.user);
 
       navigate('/');
