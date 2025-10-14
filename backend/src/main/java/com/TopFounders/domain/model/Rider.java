@@ -3,8 +3,9 @@ package com.TopFounders.domain.model;
 public class Rider extends User{
 
     private String paymentInformation;
-    private String role;
 
+    public Rider() {
+    }
     public Rider(String username, String paymentInformation, String email, String fullName, String address, String role) {
         super(username,email, fullName,address,role);
         this.paymentInformation = paymentInformation;

@@ -1,16 +1,15 @@
 package com.TopFounders.domain.model;
 
-public abstract class User {
+public class User {
     private String username;
     private String email;
     private String fullName;
     private String address;
     private String role;
-        // Default constructor (required for Spring)
+
         public User() {
         }
 
-        // Parameterized constructor
         public User(String username, String email, String fullName, String address, String role) {
             this.username = username;
             this.email = email;
@@ -19,7 +18,6 @@ public abstract class User {
             this.role = role;
         }
 
-        // Getters and Setters
         public String getFullName() {
             return fullName;
         }

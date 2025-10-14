@@ -4,14 +4,16 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { useState, useEffect } from 'react';
 import Login from './components/Login';
 import Register from './components/Register';
+import Home1 from './components/Home';
 import { authService } from './services/authService';
 
 function Home({ user, onLogout }) {
-
   return (
     <div className="App">
       <header className="App-header">
+
         <p>Welcome to SOEN 343 Project</p>
+        user:  {localStorage.getItem("address")}
         {user ? (
           <div>
             <p>Hello, {user.email}!</p>
@@ -73,6 +75,7 @@ function App() {
   useEffect(() => {
     const unsubscribe = authService.onAuthStateChanged((user) => {
       setUser(user);
+
     });
 
     return () => unsubscribe();
@@ -80,6 +83,7 @@ function App() {
 
   const handleLogout = async () => {
     await authService.logout();
+    localStorage.clear();
     setUser(null);
   };
 
@@ -96,6 +100,7 @@ function App() {
       </nav>
 
       <Routes>
+        <Route path="/home" element=<Home1/>/>
         <Route path="/" element={<Home user={user} onLogout={handleLogout} />} />
         <Route path="/login" element={
           <Login onLogin={(user) => setUser(user)} />
