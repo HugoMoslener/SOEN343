@@ -1,6 +1,5 @@
-package com.TopFounders.domain.service;
+package com.TopFounders.application.service;
 import com.TopFounders.domain.model.Operator;
-import com.TopFounders.domain.model.Rider;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
