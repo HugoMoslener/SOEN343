@@ -5,14 +5,12 @@ import javax.print.Doc;
 public class Dock {
 
     // Attributes
-    private final String dockID;
+    private  String dockID;
     private DockState state; // EMPTY, OCCUPIED, MAINTENANCE
     private Bike bike;
-    private final String stationID;
+    private String stationID;
 
     public Dock(){
-        this.dockID = "dockID";
-        this.stationID = "stationID";
     }
 
     // Constructors

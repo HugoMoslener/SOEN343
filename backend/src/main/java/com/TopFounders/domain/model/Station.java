@@ -6,13 +6,13 @@ import java.util.List;
 public class Station {
 
     // Attributes
-    private final String stationID;
-    private final String name;
+    private  String stationID;
+    private  String name;
     private StationOperationalState operationalState;
-    private final double latitude;
-    private final double longitude;
-    private final String address;
-    private final int capacity;
+    private double latitude;
+    private double longitude;
+    private String address;
+    private int capacity;
     private ArrayList<Dock> docks;
     /* Note: I removed the freeDocks because it will constantly change. It is safer to call a
     method only than to an attribute and the method inside the getter. It overcomplicates
@@ -21,12 +21,6 @@ public class Station {
     // Constructors
 
     public Station(){
-        this.stationID = "";
-        this.name = "";
-        this.latitude = 0;
-        this.longitude = 0;
-        this.address = "";
-        this.capacity = 0;
     }
     public Station(String stationID, String name,
                    double latitude, double longitude, String address, int capacity){
@@ -44,6 +38,7 @@ public class Station {
     // Setters
     public void setOperationalState(StationOperationalState operationalState) { this.operationalState = operationalState; }
     public void setDocks(ArrayList<Dock> docks) { this.docks = docks; }
+
 
     // Getters
     public String getStationID() { return stationID; }

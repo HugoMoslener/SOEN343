@@ -2,8 +2,8 @@ package com.TopFounders.domain.model;
 
 import com.TopFounders.domain.observer.Publisher;
 import com.TopFounders.domain.observer.Subscriber;
-import com.TopFounders.domain.state.Available;
-import com.TopFounders.domain.state.BikeState;
+import com.TopFounders.domain.state.*;
+import com.google.cloud.firestore.annotation.Exclude;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,15 +11,17 @@ import java.util.List;
 public class Bike implements Publisher {
 
     // Attributes
-    private final String bikeID;
-    private final BikeType type;
-    private BikeState state;
+
+    private  String bikeID;
+    private  BikeType type;
+
+    @Exclude
+    private transient BikeState state;
     private String dockID;
     private List<Subscriber> subscribers = new ArrayList<>();
+    private String stateString;
 
     public Bike(){
-        this.bikeID = "BikeID";
-        this.type = BikeType.STANDARD;
     }
 
     // Constructors
@@ -27,17 +29,34 @@ public class Bike implements Publisher {
         this.bikeID = bikeID;
         this.type = type;
         this.state = new Available(); // Available by default
+        this.stateString = "AVAILABLE";
     }
 
     // Setters
-    public void setState(BikeState state) { this.state = state; }
-    public void setDock(String dock) { this.dockID = dock; }
-
+    @Exclude
+    public void setState(BikeState state) { this.state = state;
+        this.stateString = state.getClass().getSimpleName().toUpperCase();}
+    public void setDockID(String dockID) { this.dockID = dockID; }
+    public String getStateString() { return stateString; }
+    public void setStateString(String stateString) { this.stateString = stateString; }
     // Getters
     public String getBikeID() { return bikeID; }
     public BikeType getType() { return type; }
-    public BikeState getState() { return state; }
-    public String getDock() { return dockID; }
+    @Exclude
+    public BikeState getState() {
+        if (state == null && stateString != null) {
+            // Convert back from string
+            this.state = switch (stateString.toUpperCase()) {
+                case "AVAILABLE" -> new Available();
+                case "RESERVED" -> new Reserved();
+                case "MAINTENANCE" -> new Maintenance();
+                case "ONTRIP" -> new OnTrip();
+                default -> new Available();
+            };
+        }
+        return state;
+    }
+    public String getDockID() { return dockID; }
 
     // Methods for Observer design pattern
     @Override

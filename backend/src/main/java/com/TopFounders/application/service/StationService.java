@@ -41,9 +41,11 @@ public class StationService {
         DocumentSnapshot document = future.get();
 
         Station station = null;
+        System.out.println(document + "reached here");
 
         if(document.exists()) {
             station = document.toObject(Station.class);
+            System.out.println(station.getStationID());
             return station;
         }else {
             return null;
@@ -53,13 +55,12 @@ public class StationService {
     public ArrayList<Station> getAllStations() throws InterruptedException, ExecutionException {
         Firestore db = FirestoreClient.getFirestore();
 
-        ApiFuture<QuerySnapshot> future = db.collection("stations").get();
+        ApiFuture<QuerySnapshot> future = db.collection(Collection).get();
         List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
         ArrayList<Station> stationList = new ArrayList<>();
         for (QueryDocumentSnapshot doc : documents) {
-            Station station = doc.toObject(Station.class);
-            stationList.add(station);
+            stationList.add(doc.toObject(Station.class));
         }
 
         return stationList;
