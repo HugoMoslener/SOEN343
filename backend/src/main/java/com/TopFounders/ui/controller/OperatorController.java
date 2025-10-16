@@ -1,12 +1,12 @@
-package com.TopFounders.web.controller;
+package com.TopFounders.ui.controller;
 
-public class Ooperator {
+public class OperatorController {
     private String email;
     private String username;
     private String address;
     private String fullName;
 
-    public Ooperator(){}
+    public OperatorController(){}
 
     public String getAddress(){return this.address;}
     public String getUsername(){return this.username;}
