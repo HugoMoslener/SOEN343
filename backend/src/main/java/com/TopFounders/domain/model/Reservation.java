@@ -8,6 +8,19 @@ public class Reservation {
     private Date  date;
     private Time time ;
     private Rider rider;
+    private Bike bike;
+    public Trip trip;
+
+    public Reservation(){}
+
+    public Reservation(String reservationID,Date date,Time time ,Rider rider,Bike bike, Trip trip){
+        this.reservationID=reservationID;
+        this.date=date;
+        this.time=time;
+        this.rider=rider;
+        this.bike=bike;
+        this.trip = trip;
+    }
 
     public String getReservationID() {
         return reservationID;
@@ -40,4 +53,12 @@ public class Reservation {
     public void setTime(Time time) {
         this.time = time;
     }
+
+    public Bike getBike() {return bike;}
+
+    public void setBike(Bike bike) {this.bike = bike;}
+
+    public Trip getTrip() {return trip;}
+
+    public void setTrip(Trip trip) {this.trip = trip;}
 }

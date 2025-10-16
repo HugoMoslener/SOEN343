@@ -13,12 +13,21 @@ public class Station {
     private final double longitude;
     private final String address;
     private final int capacity;
-    private List<Dock> docks;
+    private ArrayList<Dock> docks;
     /* Note: I removed the freeDocks because it will constantly change. It is safer to call a
     method only than to an attribute and the method inside the getter. It overcomplicates
     the constructor.*/
 
     // Constructors
+
+    public Station(){
+        this.stationID = "";
+        this.name = "";
+        this.latitude = 0;
+        this.longitude = 0;
+        this.address = "";
+        this.capacity = 0;
+    }
     public Station(String stationID, String name,
                    double latitude, double longitude, String address, int capacity){
         this.stationID = stationID;
@@ -34,7 +43,7 @@ public class Station {
 
     // Setters
     public void setOperationalState(StationOperationalState operationalState) { this.operationalState = operationalState; }
-    public void setDocks(List<Dock> docks) { this.docks = docks; }
+    public void setDocks(ArrayList<Dock> docks) { this.docks = docks; }
 
     // Getters
     public String getStationID() { return stationID; }
@@ -44,7 +53,7 @@ public class Station {
     public double getLongitude() { return longitude; }
     public String getAddress() { return address; }
     public int getCapacity() { return capacity; }
-    public List<Dock> getDocks() { return docks; }
+    public ArrayList<Dock> getDocks() { return docks; }
 
     // Method to creates docks automatically when Station is instantiated
     private void initializeDocks(){

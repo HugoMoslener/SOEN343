@@ -8,14 +8,19 @@ import com.TopFounders.domain.state.BikeState;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Bike implements Publisher {
+public class Bike implements Publisher {
 
     // Attributes
     private final String bikeID;
     private final BikeType type;
     private BikeState state;
-    private Dock dock;
+    private String dockID;
     private List<Subscriber> subscribers = new ArrayList<>();
+
+    public Bike(){
+        this.bikeID = "BikeID";
+        this.type = BikeType.STANDARD;
+    }
 
     // Constructors
     public Bike(String bikeID, BikeType type){
@@ -26,13 +31,13 @@ public abstract class Bike implements Publisher {
 
     // Setters
     public void setState(BikeState state) { this.state = state; }
-    public void setDock(Dock dock) { this.dock = dock; }
+    public void setDock(String dock) { this.dockID = dock; }
 
     // Getters
     public String getBikeID() { return bikeID; }
     public BikeType getType() { return type; }
     public BikeState getState() { return state; }
-    public Dock getDock() { return dock; }
+    public String getDock() { return dockID; }
 
     // Methods for Observer design pattern
     @Override
