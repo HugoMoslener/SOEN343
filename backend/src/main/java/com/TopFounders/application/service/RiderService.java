@@ -1,18 +1,14 @@
-package com.TopFounders.domain.service;
+package com.TopFounders.application.service;
 import com.TopFounders.domain.model.Rider;
-import com.TopFounders.domain.model.User;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.cloud.FirestoreClient;
-import lombok.Locked;
-import org.checkerframework.checker.guieffect.qual.SafeType;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ExecutionException;
-import java.util.*;
 
 @Service
 public class RiderService {
