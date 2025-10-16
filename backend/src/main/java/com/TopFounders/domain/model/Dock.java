@@ -10,6 +10,11 @@ public class Dock {
     private Bike bike;
     private final String stationID;
 
+    public Dock(){
+        this.dockID = "dockID";
+        this.stationID = "stationID";
+    }
+
     // Constructors
     public Dock(String dockID, String stationID){
         this.dockID = dockID;

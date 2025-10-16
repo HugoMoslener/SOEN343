@@ -4,6 +4,10 @@ import com.TopFounders.domain.state.BikeState;
 
 public class EBike extends Bike {
 
+    public EBike() {
+        super();
+    }
+
     public EBike(String bikeID) {
         super(bikeID, BikeType.E_BIKE);
     }
