@@ -1,14 +1,12 @@
-package com.TopFounders.web.controller;
+package com.TopFounders.ui.controller;
 
 import com.TopFounders.domain.model.Operator;
 import com.TopFounders.domain.model.Rider;
 import com.TopFounders.domain.model.User;
-import com.TopFounders.domain.model.UserFactory;
-import com.TopFounders.domain.service.OperatorService;
-import com.TopFounders.domain.service.RiderService;
-import com.TopFounders.domain.service.UserService;
-import com.google.api.client.json.Json;
-import org.springframework.boot.SpringApplication;
+import com.TopFounders.domain.factory.UserFactory;
+import com.TopFounders.application.service.OperatorService;
+import com.TopFounders.application.service.RiderService;
+import com.TopFounders.application.service.UserService;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,7 +24,7 @@ public class SignUpController {
     }
 
     @PostMapping("/saveRider")
-    public String saveData(@RequestBody Rrider rider ){
+    public String saveData(@RequestBody RiderController rider ){
         try{
             System.out.println("Post request reached here");
             UserFactory factory = new UserFactory();
@@ -40,7 +38,7 @@ public class SignUpController {
     }
 
     @PostMapping("/saveOperator")
-    public String saveDataOperator(@RequestBody Ooperator operator ){
+    public String saveDataOperator(@RequestBody OperatorController operator ){
         try{
             System.out.println("Post request reached here");
             UserFactory factory = new UserFactory();

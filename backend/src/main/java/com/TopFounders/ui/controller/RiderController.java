@@ -1,13 +1,13 @@
-package com.TopFounders.web.controller;
+package com.TopFounders.ui.controller;
 
-public class Rrider{
+public class RiderController {
     private String email;
     private String username;
     private String paymentInformation;
     private String address;
     private String fullName;
     
-    public Rrider(){}
+    public RiderController(){}
     
     public String getAddress(){return this.address;}
     public String getUsername(){return this.username;}

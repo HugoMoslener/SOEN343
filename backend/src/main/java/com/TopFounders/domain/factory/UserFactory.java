@@ -1,4 +1,7 @@
-package com.TopFounders.domain.model;
+package com.TopFounders.domain.factory;
+
+import com.TopFounders.domain.model.Operator;
+import com.TopFounders.domain.model.Rider;
 
 public class UserFactory {
 
