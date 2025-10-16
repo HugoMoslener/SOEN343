@@ -41,6 +41,7 @@ public class BikeService {
         ApiFuture<DocumentSnapshot> future = documentReference.get();
 
         DocumentSnapshot document = future.get();
+        System.out.println("Bike details at: " + document.getId());
 
         Bike bike = null;
 

@@ -8,6 +8,8 @@ import com.TopFounders.domain.model.*;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+
 @SpringBootApplication
 @RestController
 @RequestMapping("/api/create")
@@ -58,7 +60,7 @@ public class CreationController {
 
             for(Dock dock : station2.getDocks()){
                 Bike bike = new Bike(dock.getDockID(), BikeType.STANDARD);
-                bike.setDock(dock.getDockID());
+                bike.setDockID(dock.getDockID());
                 bikeService.saveBike(bike);
                 dock.setBike(bike);
                 dock.setState(DockState.OCCUPIED);
@@ -73,15 +75,46 @@ public class CreationController {
 
     }
 
-    @GetMapping("/setUpDataCorrectly")
-    public String setUpData(){
+    @GetMapping("/getAllStations")
+    public ArrayList<Station> getStations(){
         try{
             System.out.println("Post request reached here");
+            ArrayList<Station> stationList = stationService.getAllStations();
 
-            return "true";
+            return stationList;
         }
         catch (Exception e) {
-            return "false";
+            return null;
+        }
+
+    }
+
+    @PostMapping("/Dockget")
+    public Dock getDock(@RequestBody String dockID){
+        try{
+            System.out.println("Post request reached here");
+            Dock stationList = dockService.getDockDetails(dockID);
+            System.out.println(stationList.getDockID());
+
+            return stationList;
+        }
+        catch (Exception e) {
+            return null;
+        }
+
+    }
+
+    @PostMapping("/Bikeget")
+    public Bike getBike(@RequestBody String bikeID){
+        try{
+            System.out.println("Post request reached here");
+            Bike stationList = bikeService.getBikeDetails(bikeID);
+            System.out.println(stationList.getBikeID());
+
+            return stationList;
+        }
+        catch (Exception e) {
+            return null;
         }
 
     }
