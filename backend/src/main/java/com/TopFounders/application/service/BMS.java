@@ -73,6 +73,8 @@ public class BMS implements Subscriber {
         System.out.println("reserveBike middle");
         Station station = stationService.getStationDetails(result);
         station.updateADock(dock);
+
+        if(!dock.getState().equals(DockState.OUT_OF_SERVICE)){
         bikeService.updateBikeDetails(bike1);
         dockService.updateDockDetails(dock);
         stationService.updateStationDetails(station);
@@ -82,7 +84,8 @@ public class BMS implements Subscriber {
         ReservationService reservationService = new ReservationService();
         reservationService.saveReservation(reservation);
         System.out.println("reserveBike finished");
-        return reservation.getReservationID();
+        return reservation.getReservationID();}
+        return null;
     }
 
     public String undockBike(String username, String reservationID) throws ExecutionException, InterruptedException {
@@ -96,7 +99,7 @@ public class BMS implements Subscriber {
         Dock dock = dockService.getDockDetails(bike.getDockID());
         Station station = stationService.getStationDetails(result);
         Rider rider = riderService.getRiderDetails(reservation.getRider().getUsername());
-        if(reservation.getState().equals(ReservationState.PENDING) & dock.getState().equals(DockState.OCCUPIED) ){
+        if(reservation.getState().equals(ReservationState.PENDING) & dock.getState().equals(DockState.OCCUPIED) & !station.getOccupancyStatus().equals(StationOccupancyState.EMPTY) ){
             Trip trip = reservation.createTrip(station.getAddress(),new Payment(),new PricingPlan());
             reservation.setState(ReservationState.CONFIRMED);
             bike.setState(new OnTrip());
@@ -132,7 +135,7 @@ public class BMS implements Subscriber {
         Station station = stationService.getStationDetails(result);
         Rider rider = riderService.getRiderDetails(reservation.getRider().getUsername());
 
-        if(reservation.getState().equals(ReservationState.CONFIRMED) & dock.getState().equals(DockState.EMPTY) ){
+        if(reservation.getState().equals(ReservationState.CONFIRMED) & dock.getState().equals(DockState.EMPTY) & !station.getOccupancyStatus().equals(StationOccupancyState.FULL) ){
 
             trip.setArrival(station.getAddress());
             trip.setEndTime(LocalTime.now().toString());
