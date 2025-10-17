@@ -1,6 +1,9 @@
 package com.TopFounders.domain.model;
 
+import com.TopFounders.application.service.BMS;
 import com.TopFounders.application.service.Dashboard;
+
+import java.util.concurrent.ExecutionException;
 
 public class Rider extends User{
 
@@ -19,8 +22,20 @@ public class Rider extends User{
         this.paymentInformation= paymentInformation;
     }
 
-    public String reserveBike(String name, Rider rider, String ID, String username){
-        return Dashboard.getInstance().reserveBike(name,rider, ID, username);
+    public String reserveBike(String stationName, Rider rider, String BikeID, String username) throws ExecutionException, InterruptedException {
+
+        return Dashboard.getInstance().reserveBike(stationName,rider, BikeID, username);
+    }
+
+    public String cancelBikeReservation(String reservationID, String username) throws ExecutionException, InterruptedException {
+
+        BMS.getInstance().cancelReservation(reservationID, username);
+        return "Successful";
+    }
+
+    public String undockBike(String username, String reservationID) throws ExecutionException, InterruptedException {
+        Dashboard.getInstance().undockBike(username, reservationID);
+        return "Successful";
     }
 
 }

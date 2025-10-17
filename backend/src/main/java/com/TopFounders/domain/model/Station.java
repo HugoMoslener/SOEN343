@@ -33,6 +33,7 @@ public class Station {
         this.capacity = capacity;
         this.operationalState = StationOperationalState.ACTIVE; // Active by default
         this.docks = new ArrayList<>();
+        this.reservationHoldTime = 5.0;
         initializeDocks();
     }
 
