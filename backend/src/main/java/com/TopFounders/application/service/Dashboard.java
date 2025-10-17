@@ -1,6 +1,7 @@
 package com.TopFounders.application.service;
 
 import com.TopFounders.domain.model.BikeType;
+import com.TopFounders.domain.model.Rider;
 
 public class Dashboard {
 
@@ -15,7 +16,7 @@ public class Dashboard {
         return instance;
     }
 
-    public String reserveBike(String name, String ID, String username){
-        return BMS.getInstance().reserveBike(name, ID, username);
+    public String reserveBike(String name, Rider rider, String ID, String username){
+        return BMS.getInstance().reserveBike(name,rider, ID, username);
     }
 }
