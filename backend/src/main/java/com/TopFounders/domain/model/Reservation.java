@@ -1,24 +1,26 @@
 package com.TopFounders.domain.model;
 
 import java.sql.Time;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Date;
 
 public class Reservation {
     private String reservationID;
-    private Date  date;
-    private Time time ;
+    private LocalDate  date;
+    private LocalTime time ;
     private Rider rider;
-    private Bike bike;
+    private String bikeID;
     public Trip trip;
 
     public Reservation(){}
 
-    public Reservation(String reservationID,Date date,Time time ,Rider rider,Bike bike, Trip trip){
-        this.reservationID=reservationID;
-        this.date=date;
-        this.time=time;
+    public Reservation(Rider rider,String bikeID){
+        this.reservationID=bikeID + LocalDate.now();
+        this.date= LocalDate.now();
+        this.time= LocalTime.now();
         this.rider=rider;
-        this.bike=bike;
+        this.bikeID=bikeID;
         this.trip = trip;
     }
 
@@ -30,11 +32,11 @@ public class Reservation {
         this.reservationID = reservationID;
     }
 
-    public Date getDate() {
+    public LocalDate getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
+    public void setDate(LocalDate date) {
         this.date = date;
     }
 
@@ -46,17 +48,17 @@ public class Reservation {
         this.rider = rider;
     }
 
-    public Time getTime() {
+    public LocalTime getTime() {
         return time;
     }
 
-    public void setTime(Time time) {
+    public void setTime(LocalTime time) {
         this.time = time;
     }
 
-    public Bike getBike() {return bike;}
+    public String getBikeID() {return bikeID;}
 
-    public void setBike(Bike bike) {this.bike = bike;}
+    public void setBike(String bikeID) {this.bikeID = bikeID;}
 
     public Trip getTrip() {return trip;}
 

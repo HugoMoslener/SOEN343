@@ -57,14 +57,28 @@ public class CreationController {
         try{
             System.out.println("Post request reached here");
             Station station2 = new Station(station.getStationID(), station.getName(), station.getLatitude(),station.getLongitude(), station.getAddress(), station.getCapacity());
-
+            int count = 0;
             for(Dock dock : station2.getDocks()){
-                Bike bike = new Bike(dock.getDockID(), BikeType.STANDARD);
+                count++;
+
+                if(count%3!=0){
+                Bike bike ;
+
+                if(count%2==0){
+                bike = new Bike(dock.getDockID(), BikeType.STANDARD);}
+                else{
+                    bike = new EBike(dock.getDockID());
+                }
                 bike.setDockID(dock.getDockID());
                 bikeService.saveBike(bike);
                 dock.setBike(bike);
                 dock.setState(DockState.OCCUPIED);
-                dockService.saveDock(dock);
+                dockService.saveDock(dock);}
+                else{
+                    dock.setState(DockState.EMPTY);
+                    dockService.saveDock(dock);
+                }
+
             }
             stationService.saveStation(station2);
             return "true";

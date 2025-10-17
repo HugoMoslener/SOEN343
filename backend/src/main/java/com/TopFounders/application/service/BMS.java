@@ -1,11 +1,59 @@
 package com.TopFounders.application.service;
 
-import com.TopFounders.domain.model.Bike;
+import com.TopFounders.domain.model.*;
 import com.TopFounders.domain.observer.Subscriber;
+import com.TopFounders.domain.state.BikeState;
+import com.TopFounders.domain.state.Maintenance;
+
+import java.sql.Time;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Date;
 
 public class BMS implements Subscriber {
 
-    // We could make BMS a singleton
+    private static BMS instance;
+
+    private BMS(){}
+
+    public static BMS getInstance(){
+        if(instance == null){
+            instance = new BMS();
+        }
+        return instance;
+    }
+
+    public String reserveBike(String name, String ID, String username){
+        Bike bike = MapService.getInstance().getAvailableBike(name,ID);
+        Reservation reservation = new Reservation();
+        return bike.getBikeID();
+    }
+
+    public void moveABikefromDockAToDockB(Dock dockA, Dock dockB,Bike bike){
+        if(dockA.getStationID().equals(dockB.getStationID())){return;}
+        if(dockA.getState() != DockState.OCCUPIED || dockB.getState() != DockState.EMPTY){return;}
+        if(bike.getStateString().equals("RESERVED") || bike.getStateString().equals("ONTRIP")){return;}
+
+        dockA.setState(DockState.EMPTY);
+        dockB.setState(DockState.OCCUPIED);
+        bike.setDockID(dockB.getDockID());
+        dockB.setBike(bike);
+        dockA.setBike(null);
+    }
+
+    public void setAStationAsOutOfService(Station station){
+        station.setOperationalState(StationOperationalState.OUT_OF_SERVICE);
+        station.getOccupancyStatus();
+    }
+
+    public void setABikeAsMaintenance(Bike bike){
+        bike.setState(new Maintenance());
+        bike.setStateString("MAINTENANCE");
+    }
+
+
+
+
 
     @Override
     public void update(String eventType, Bike bike) {
