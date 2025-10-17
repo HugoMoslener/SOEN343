@@ -23,9 +23,9 @@ public class BMS implements Subscriber {
         return instance;
     }
 
-    public String reserveBike(String name, String ID, String username){
-        Bike bike = MapService.getInstance().getAvailableBike(name,ID);
-        Reservation reservation = new Reservation();
+    public String reserveBike(String name,Rider rider, String bikeID, String username){
+        Bike bike = MapService.getInstance().getAvailableBike(name,bikeID);
+        Reservation reservation = new Reservation(rider,bike);
         return bike.getBikeID();
     }
 

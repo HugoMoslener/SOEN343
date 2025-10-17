@@ -19,8 +19,8 @@ public class Rider extends User{
         this.paymentInformation= paymentInformation;
     }
 
-    public String reserveBike(String name, String ID, String username){
-        return Dashboard.getInstance().reserveBike(name, ID, username);
+    public String reserveBike(String name, Rider rider, String ID, String username){
+        return Dashboard.getInstance().reserveBike(name,rider, ID, username);
     }
 
 }

@@ -10,18 +10,17 @@ public class Reservation {
     private LocalDate  date;
     private LocalTime time ;
     private Rider rider;
-    private String bikeID;
+    private Bike bike;
     public Trip trip;
 
     public Reservation(){}
 
-    public Reservation(Rider rider,String bikeID){
-        this.reservationID=bikeID + LocalDate.now();
+    public Reservation(Rider rider,Bike bike){
+        this.reservationID=rider.getUsername() + LocalDate.now();
         this.date= LocalDate.now();
         this.time= LocalTime.now();
         this.rider=rider;
-        this.bikeID=bikeID;
-        this.trip = trip;
+        this.bike=bike;
     }
 
     public String getReservationID() {
@@ -56,9 +55,9 @@ public class Reservation {
         this.time = time;
     }
 
-    public String getBikeID() {return bikeID;}
+    public Bike getBike() {return bike;}
 
-    public void setBike(String bikeID) {this.bikeID = bikeID;}
+    public void setBike(Bike bike) {this.bike = bike;}
 
     public Trip getTrip() {return trip;}
 

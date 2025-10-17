@@ -6,7 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="24017b9e-a173-4586-8b9d-1de025c71da7" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/resources/Firebase/firebase.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/BMS.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/BMS.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/Dashboard.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/Dashboard.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Reservation.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Reservation.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Rider.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Rider.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
