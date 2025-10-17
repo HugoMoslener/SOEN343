@@ -19,11 +19,15 @@ public class MapService {
         }
         return instance;
     }
+    public ArrayList<Station> getStations(){return stations;}
+    public void setStations(ArrayList<Station> stations){this.stations = stations;}
 
     public Bike getAvailableBike(String name, String bikeID){
+        System.out.println("name"+name + ": " + bikeID);
         Station station = getStation(name);
         for (Dock dock : station.getDocks()) {
             if (dock.getBike().getBikeID().equals(bikeID)) {
+                System.out.println("BikeID"+ dock.getBike().getBikeID());
                 return dock.getBike();
             }
         }
@@ -31,8 +35,10 @@ public class MapService {
     }
 
     public Station getStation(String name){
+        System.out.println("getStation started "+ name);
         for (Station station : stations) {
             if (station.getName().equals(name)) {
+
                 return station;
             }
         }
