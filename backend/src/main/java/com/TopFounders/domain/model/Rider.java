@@ -1,5 +1,7 @@
 package com.TopFounders.domain.model;
 
+import com.TopFounders.application.service.Dashboard;
+
 public class Rider extends User{
 
     private String paymentInformation;
@@ -15,6 +17,10 @@ public class Rider extends User{
     }
     public void setPaymentInformation(String paymentInformation){
         this.paymentInformation= paymentInformation;
+    }
+
+    public String reserveBike(String name, String ID, String username){
+        return Dashboard.getInstance().reserveBike(name, ID, username);
     }
 
 }
