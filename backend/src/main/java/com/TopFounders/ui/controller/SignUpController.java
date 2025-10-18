@@ -24,7 +24,7 @@ public class SignUpController {
     }
 
     @PostMapping("/saveRider")
-    public String saveData(@RequestBody RiderController rider ){
+    public String saveData(@RequestBody RiderHelperClass rider ){
         try{
             System.out.println("Post request reached here");
             UserFactory factory = new UserFactory();
@@ -38,7 +38,7 @@ public class SignUpController {
     }
 
     @PostMapping("/saveOperator")
-    public String saveDataOperator(@RequestBody OperatorController operator ){
+    public String saveDataOperator(@RequestBody OperatorHelperClass operator ){
         try{
             System.out.println("Post request reached here");
             UserFactory factory = new UserFactory();
