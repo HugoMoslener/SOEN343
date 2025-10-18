@@ -29,10 +29,16 @@ public class Dock implements Publisher {
     }
 
     // Setters
-    public void setState(DockState state) { this.state = state;
+    public void setState(DockState state) {
+        this.state = state;
+        updateState();
+        }
+
+    private void updateState(){
         if(getState().equals(DockState.EMPTY)){ notifySubscribers("DOCK_EMPTY");}
         if(getState().equals(DockState.OCCUPIED)){ notifySubscribers("DOCK_FULL"); }
-        if(getState().equals(DockState.OUT_OF_SERVICE)){ notifySubscribers("DOCK_OUT_OF_SERVICE");}}
+        if(getState().equals(DockState.OUT_OF_SERVICE)){ notifySubscribers("DOCK_OUT_OF_SERVICE");}
+    }
 
     public void setBike(Bike bike) { this.bike = bike; }
 

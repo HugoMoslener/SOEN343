@@ -41,11 +41,17 @@ public class Bike implements Publisher {
         this.dockID = dockID;
     }
     public String getStateString() { return stateString; }
-    public void setStateString(String stateString) { this.stateString = stateString;
+    public void setStateString(String stateString) {
+        this.stateString = stateString;
+        updateState();
+        }
+
+    private void updateState(){
         if(getStateString().equals("AVAILABLE")){ notifySubscribers("BIKE_RESERVED");}
         if(getStateString().equals("RESERVED")){ notifySubscribers("BIKE_CHECKED_OUT"); }
         if(getStateString().equals("MAINTENANCE")){ notifySubscribers("BIKE_RETURNED");}
-        if(getStateString().equals("ONTRIP")){ notifySubscribers("BIKE_MAINTENANCE");}}
+        if(getStateString().equals("ONTRIP")){ notifySubscribers("BIKE_MAINTENANCE");}
+    }
     // Getters
     public String getBikeID() { return bikeID; }
     public BikeType getType() { return type; }

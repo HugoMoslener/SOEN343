@@ -6,9 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="24017b9e-a173-4586-8b9d-1de025c71da7" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/ui/controller/OperatorController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/ui/controller/OperatorHelperClass.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/ui/controller/RiderController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/ui/controller/RiderHelperClass.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/ui/controller/SignUpController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/ui/controller/SignUpController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Bike.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Bike.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Dock.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Dock.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -83,7 +82,7 @@
       <recent name="com.TopFounders.application.service" />
     </key>
   </component>
-  <component name="RunManager" selected="npm.start">
+  <component name="RunManager" selected="Maven.backend [spring-boot:run]">
     <configuration name="start" type="js.build_tools.npm" nameIsGenerated="true">
       <package-json value="$PROJECT_DIR$/frontend/package.json" />
       <command value="run" />
@@ -137,7 +136,7 @@
       <workItem from="1760566239836" duration="679000" />
       <workItem from="1760626691961" duration="30401000" />
       <workItem from="1760708435701" duration="20729000" />
-      <workItem from="1760750959515" duration="3753000" />
+      <workItem from="1760750959515" duration="4446000" />
     </task>
     <servers />
   </component>
