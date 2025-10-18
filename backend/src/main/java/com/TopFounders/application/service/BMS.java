@@ -51,6 +51,7 @@ public class BMS implements Subscriber {
             bikeService.updateBikeDetails(bike1);
             dockService.updateDockDetails(dock);
             stationService.updateStationDetails(station);
+            reservation.notifySubscribers("RESERVATION_EXPIRED");
         }
     }
 
@@ -115,6 +116,7 @@ public class BMS implements Subscriber {
             dockService.updateDockDetails(dock);
             bikeService.updateBikeDetails(bike);
             reservationService.updateReservationDetails(reservation);
+            trip.notifySubscribers("TRIP_STARTED");
             return "Successful";
         }
 
@@ -151,33 +153,37 @@ public class BMS implements Subscriber {
             dockService.updateDockDetails(dock);
             bikeService.updateBikeDetails(bike);
             tripService.saveTrip(trip);
-
+            trip.notifySubscribers("TRIP_ENDED");
             return "Successful";
         }
 
         return "Unsuccessful";
     }
 
-    public void moveABikefromDockAToDockB(Dock dockA, Dock dockB,Bike bike){
-        if(dockA.getStationID().equals(dockB.getStationID())){return;}
-        if(dockA.getState() != DockState.OCCUPIED || dockB.getState() != DockState.EMPTY){return;}
-        if(bike.getStateString().equals("RESERVED") || bike.getStateString().equals("ONTRIP")){return;}
+    public String moveABikefromDockAToDockB(Dock dockA, Dock dockB,Bike bike){
+        if(dockA.getStationID().equals(dockB.getStationID())){return "Unsuccessful";}
+        if(dockA.getState() != DockState.OCCUPIED || dockB.getState() != DockState.EMPTY){return "Unsuccessful";}
+        if(bike.getStateString().equals("RESERVED") || bike.getStateString().equals("ONTRIP")){return "Unsuccessful";}
 
         dockA.setState(DockState.EMPTY);
         dockB.setState(DockState.OCCUPIED);
         bike.setDockID(dockB.getDockID());
         dockB.setBike(bike);
         dockA.setBike(null);
+
+        return "Successful";
     }
 
-    public void setAStationAsOutOfService(Station station){
+    public String setAStationAsOutOfService(Station station){
         station.setOperationalState(StationOperationalState.OUT_OF_SERVICE);
         station.getOccupancyStatus();
+        return "Successful";
     }
 
-    public void setABikeAsMaintenance(Bike bike){
+    public String setABikeAsMaintenance(Bike bike){
         bike.setState(new Maintenance());
         bike.setStateString("MAINTENANCE");
+        return "Successful";
     }
 
 
@@ -185,24 +191,52 @@ public class BMS implements Subscriber {
 
 
     @Override
-    public void update(String eventType, Bike bike) {
+    public void update(String eventType, Object object) {
         switch (eventType) {
             case "BIKE_RESERVED":
-                System.out.println("BMS: Bike " + bike.getBikeID() + " reserved");
+                System.out.println("BMS: Bike " + ((Bike)object).getBikeID() + " reserved");
                 // Update station occupancy, emit event, etc...
                 break;
             case "BIKE_CHECKED_OUT":
-                System.out.println("BMS: Bike " + bike.getBikeID() + " checked out");
+                System.out.println("BMS: Bike " + ((Bike)object).getBikeID() + " checked out");
                 // Start trip timer
                 break;
             case "BIKE_RETURNED":
-                System.out.println("BMS: Bike " + bike.getBikeID() + " returned");
+                System.out.println("BMS: Bike " + ((Bike)object).getBikeID() + " returned");
                 // End trip and calculate pricing
                 break;
             case "BIKE_MAINTENANCE":
-                System.out.println("BMS: Bike " + bike.getBikeID() + " in maintenance");
+                System.out.println("BMS: Bike " + ((Bike)object).getBikeID() + " in maintenance");
                 // Notify operators for balancing stations
                 break;
+
+            case "DOCK_FULL":
+                System.out.println("BMS: Dock " + ((Dock)object).getDockID() + " is full");
+                // Notify when a dock is full
+                break;
+            case "DOCK_EMPTY":
+                System.out.println("BMS: Dock " + ((Dock)object).getDockID() + " is empty");
+                // Notifies when a dock is empty
+                break;
+            case "DOCK_OUT_OF_SERVICE":
+                System.out.println("BMS: Dock " + ((Dock)object).getDockID() + " is out of service");
+                // Notifies when a dock is out of service
+                break;
+
+            case "TRIP_STARTED":
+                System.out.println("BMS: Trip " + ((Trip)object).getTripID() + " has started.");
+                // Notifies when a trip has started
+                break;
+            case "TRIP_ENDED":
+                System.out.println("BMS: Trip " + ((Trip)object).getTripID() + " has ended.");
+                // Notifies when a trip has ended
+                break;
+
+            case "RESERVATION_EXPIRED":
+                System.out.println("BMS: Reservation " + ((Reservation)object).getReservationID() + " has expired.");
+                // Notifes when a reservation has expired
+                break;
+
         }
     }
 }

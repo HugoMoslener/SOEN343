@@ -1,18 +1,25 @@
 package com.TopFounders.domain.model;
 
+import com.TopFounders.application.service.BMS;
+import com.TopFounders.domain.observer.Publisher;
+import com.TopFounders.domain.observer.Subscriber;
+
 import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
-public class Reservation {
+public class Reservation implements Publisher {
     private String reservationID;
     private String  date;
     private String time ;
     private Rider rider;
     private Bike bike;
     public String tripID;
+    private List<Subscriber> subscribers = new ArrayList<>();
     public ReservationState state;
 
     public Reservation(){}
@@ -75,4 +82,20 @@ public class Reservation {
         Trip trip = new Trip(origin,payment,pricingPlan);
         this.tripID = trip.getTripID();
         return trip;}
+
+    @Override
+    public void subscribe(Subscriber subscriber){
+        subscribers.add(subscriber);
+    }
+    @Override
+    public void unsubscribe(Subscriber subscriber){
+        subscribers.remove(subscriber);
+    }
+    @Override
+    public void notifySubscribers(String eventType){
+        subscribe(BMS.getInstance());
+        for (Subscriber subscriber : subscribers){
+            subscriber.update(eventType, this);
+        }
+    }
 }
