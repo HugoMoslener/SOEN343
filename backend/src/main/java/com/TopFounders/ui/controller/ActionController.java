@@ -1,9 +1,7 @@
 package com.TopFounders.ui.controller;
 
 import com.TopFounders.application.service.*;
-import com.TopFounders.domain.model.Bike;
-import com.TopFounders.domain.model.BikeType;
-import com.TopFounders.domain.model.Rider;
+import com.TopFounders.domain.model.*;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -91,4 +89,51 @@ public class ActionController {
         }
 
     }
+
+    @PostMapping("/moveABikefromDockAToDockB")
+    public String moveABikefromDockAToDockB(@RequestBody MoveABikeHelperClass moveABikeHelperClass ){
+        try{
+            System.out.println("Post request reached here");
+            Dock dock1 = dockService.getDockDetails(moveABikeHelperClass.getDock1ID());
+            Dock dock2 = dockService.getDockDetails(moveABikeHelperClass.getDock2ID());
+            Bike bike = bikeService.getBikeDetails(moveABikeHelperClass.getBikeID());
+
+            String message = BMS.getInstance().moveABikefromDockAToDockB(dock1,dock2,bike);
+            return message;
+        }
+        catch (Exception e) {
+            return "false";
+        }
+
+    }
+
+    @PostMapping("/setAStationAsOutOfService")
+    public String setAStationAsOutOfService(@RequestBody String stationID ){
+        try{
+            System.out.println("Post request reached here");
+            Station station = stationService.getStationDetails(stationID);
+            String message = BMS.getInstance().setAStationAsOutOfService(station);
+            return message;
+        }
+        catch (Exception e) {
+            return "false";
+        }
+
+    }
+
+    @PostMapping("/setABikeAsMaintenance")
+    public String setABikeAsMaintenance(@RequestBody String BikeID ){
+        try{
+            System.out.println("Post request reached here");
+            Bike bike = bikeService.getBikeDetails(BikeID);
+            String message = BMS.getInstance().setABikeAsMaintenance(bike);
+            return message;
+        }
+        catch (Exception e) {
+            return "false";
+        }
+
+    }
+
+
 }

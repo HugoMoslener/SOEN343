@@ -1,4 +1,5 @@
 package com.TopFounders.application.service;
+import com.TopFounders.domain.model.ReservationState;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
@@ -25,20 +26,22 @@ public class ReservationExpirationChecker {
         ArrayList<Reservation> reservations = reservationService.getAllReservations();
 
         for (Reservation reservation : reservations) {
+            if(reservation.getState().equals(ReservationState.PENDING)) {
 
-            LocalTime storedTime = LocalTime.parse(reservation.getTime());
+                LocalTime storedTime = LocalTime.parse(reservation.getTime());
 
-            LocalTime now = LocalTime.now();
+                LocalTime now = LocalTime.now();
 
-            Duration duration = Duration.between(storedTime, now);
+                Duration duration = Duration.between(storedTime, now);
 
-            if (duration.isNegative()) {
-                duration = duration.plusHours(24);
-            }
+                if (duration.isNegative()) {
+                    duration = duration.plusHours(24);
+                }
 
-            if (duration.toMinutes() >= 5) {
-                BMS.getInstance().cancelReservation(reservation.getReservationID(),reservation.getRider().getUsername());
-            } else {
+                if (duration.toMinutes() >= 5) {
+                    BMS.getInstance().cancelReservation(reservation.getReservationID(), reservation.getRider().getUsername());
+                } else {
+                }
             }
         }
 

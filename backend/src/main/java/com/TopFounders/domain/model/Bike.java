@@ -1,5 +1,6 @@
 package com.TopFounders.domain.model;
 
+import com.TopFounders.application.service.BMS;
 import com.TopFounders.domain.observer.Publisher;
 import com.TopFounders.domain.observer.Subscriber;
 import com.TopFounders.domain.state.*;
@@ -36,9 +37,15 @@ public class Bike implements Publisher {
     @Exclude
     public void setState(BikeState state) { this.state = state;
         this.stateString = state.getClass().getSimpleName().toUpperCase();}
-    public void setDockID(String dockID) { this.dockID = dockID; }
+    public void setDockID(String dockID) {
+        this.dockID = dockID;
+    }
     public String getStateString() { return stateString; }
-    public void setStateString(String stateString) { this.stateString = stateString; }
+    public void setStateString(String stateString) { this.stateString = stateString;
+        if(getStateString().equals("AVAILABLE")){ notifySubscribers("BIKE_RESERVED");}
+        if(getStateString().equals("RESERVED")){ notifySubscribers("BIKE_CHECKED_OUT"); }
+        if(getStateString().equals("MAINTENANCE")){ notifySubscribers("BIKE_RETURNED");}
+        if(getStateString().equals("ONTRIP")){ notifySubscribers("BIKE_MAINTENANCE");}}
     // Getters
     public String getBikeID() { return bikeID; }
     public BikeType getType() { return type; }
@@ -69,6 +76,7 @@ public class Bike implements Publisher {
     }
     @Override
     public void notifySubscribers(String eventType){
+        subscribe(BMS.getInstance());
         for (Subscriber subscriber : subscribers){
             subscriber.update(eventType, this);
         }

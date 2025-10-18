@@ -5,9 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="24017b9e-a173-4586-8b9d-1de025c71da7" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/ReservationExpirationChecker.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/ui/controller/MoveABikeHelperClass.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/BackendApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/BackendApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/BMS.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/BMS.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/ReservationExpirationChecker.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/ReservationExpirationChecker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Bike.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Bike.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Dock.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Dock.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Reservation.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Reservation.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Trip.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Trip.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/observer/Subscriber.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/observer/Subscriber.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/ui/controller/ActionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/ui/controller/ActionController.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -135,7 +142,8 @@
       <workItem from="1760563401932" duration="2753000" />
       <workItem from="1760566239836" duration="679000" />
       <workItem from="1760626691961" duration="30401000" />
-      <workItem from="1760708435701" duration="20112000" />
+      <workItem from="1760708435701" duration="20729000" />
+      <workItem from="1760750959515" duration="3181000" />
     </task>
     <servers />
   </component>
