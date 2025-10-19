@@ -58,6 +58,14 @@ public class BMS implements Subscriber {
 
     public String reserveBike(String stationName,Rider rider, String bikeID, String username) throws ExecutionException, InterruptedException {
        System.out.println("reserveBike started");
+
+       for(Reservation reservation: reservationService.getAllReservations()){ // prevents a user from having more than one reservation
+           if(reservation.getRider().getUsername().equals(rider.getUsername())){
+               if(reservation.getState() == ReservationState.PENDING){
+                   return null;
+               }
+           }
+       }
         Bike bike = MapService.getInstance().getAvailableBike(stationName,bikeID);
         System.out.println(bike.getBikeID());
         Bike bike1 = bikeService.getBikeDetails(bike.getBikeID());
@@ -75,14 +83,13 @@ public class BMS implements Subscriber {
         Station station = stationService.getStationDetails(result);
         station.updateADock(dock);
 
-        if(!dock.getState().equals(DockState.OUT_OF_SERVICE)){
+        if(dock.getState() != DockState.OUT_OF_SERVICE){
         bikeService.updateBikeDetails(bike1);
         dockService.updateDockDetails(dock);
         stationService.updateStationDetails(station);
 
 
         Reservation reservation = new Reservation(rider,bike1);
-        ReservationService reservationService = new ReservationService();
         reservationService.saveReservation(reservation);
         System.out.println("reserveBike finished");
         return reservation.getReservationID();}
@@ -100,7 +107,7 @@ public class BMS implements Subscriber {
         Dock dock = dockService.getDockDetails(bike.getDockID());
         Station station = stationService.getStationDetails(result);
         Rider rider = riderService.getRiderDetails(reservation.getRider().getUsername());
-        if(reservation.getState().equals(ReservationState.PENDING) & dock.getState().equals(DockState.OCCUPIED) & !station.getOccupancyStatus().equals(StationOccupancyState.EMPTY) ){
+        if((reservation.getState() == ReservationState.PENDING) & (dock.getState() == DockState.OCCUPIED) & (station.getOccupancyStatus() != StationOccupancyState.EMPTY) ){
             Trip trip = reservation.createTrip(station.getAddress(),new Payment(),new PricingPlan());
             reservation.setState(ReservationState.CONFIRMED);
             bike.setState(new OnTrip());
@@ -137,7 +144,7 @@ public class BMS implements Subscriber {
         Station station = stationService.getStationDetails(result);
         Rider rider = riderService.getRiderDetails(reservation.getRider().getUsername());
 
-        if(reservation.getState().equals(ReservationState.CONFIRMED) & dock.getState().equals(DockState.EMPTY) & !station.getOccupancyStatus().equals(StationOccupancyState.FULL) ){
+        if((reservation.getState() == ReservationState.CONFIRMED) & (dock.getState() == DockState.EMPTY) & (station.getOccupancyStatus() != StationOccupancyState.FULL) ){
 
             trip.setArrival(station.getAddress());
             trip.setEndTime(LocalTime.now().toString());

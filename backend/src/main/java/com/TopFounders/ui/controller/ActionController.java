@@ -33,10 +33,9 @@ public class ActionController {
             MapService.getInstance().setStations(stationService.getAllStations());
             System.out.println("hello" + reservationHelperClass.getStationName()+": "+reservationHelperClass.getBikeID()+":" + reservationHelperClass.getRiderID());
             Rider rider = riderService.getRiderDetails(reservationHelperClass.getRiderID());
-            String message = rider.reserveBike(reservationHelperClass.getStationName(), rider, reservationHelperClass.getBikeID(), reservationHelperClass.getBikeID());
+            String message = rider.reserveBike(reservationHelperClass.getStationName(), rider, reservationHelperClass.getBikeID(), reservationHelperClass.getRiderID());
             System.out.println(message);
-            String message1 = rider.undockBike(reservationHelperClass.getRiderID(),message);
-            return message1;
+            return message;
         }
         catch (Exception e) {
             return "false";
