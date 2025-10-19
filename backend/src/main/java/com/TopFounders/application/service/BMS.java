@@ -160,7 +160,7 @@ public class BMS implements Subscriber {
         return "Unsuccessful";
     }
 
-    public String moveABikefromDockAToDockB(Dock dockA, Dock dockB,Bike bike){
+    public String moveABikefromDockAToDockB(Dock dockA, Dock dockB,Bike bike) throws ExecutionException, InterruptedException {
         if(dockA.getStationID().equals(dockB.getStationID())){return "Unsuccessful";}
         if(dockA.getState() != DockState.OCCUPIED || dockB.getState() != DockState.EMPTY){return "Unsuccessful";}
         if(bike.getStateString().equals("RESERVED") || bike.getStateString().equals("ONTRIP")){return "Unsuccessful";}
@@ -170,19 +170,39 @@ public class BMS implements Subscriber {
         bike.setDockID(dockB.getDockID());
         dockB.setBike(bike);
         dockA.setBike(null);
+        dockService.updateDockDetails(dockA);
+        dockService.updateDockDetails(dockB);
+        bikeService.updateBikeDetails(bike);
+
 
         return "Successful";
     }
 
-    public String setAStationAsOutOfService(Station station){
+    public String setAStationAsOutOfService(Station station) throws ExecutionException, InterruptedException {
         station.setOperationalState(StationOperationalState.OUT_OF_SERVICE);
         station.getOccupancyStatus();
+        stationService.updateStationDetails(station);
         return "Successful";
     }
 
-    public String setABikeAsMaintenance(Bike bike){
+    public String setABikeAsMaintenance(Bike bike) throws ExecutionException, InterruptedException {
         bike.setState(new Maintenance());
         bike.setStateString("MAINTENANCE");
+        bikeService.updateBikeDetails(bike);
+        return "Successful";
+    }
+
+    public String setAStationAsActive(Station station) throws ExecutionException, InterruptedException {
+        station.setOperationalState(StationOperationalState.ACTIVE);
+        station.getOccupancyStatus();
+        stationService.updateStationDetails(station);
+        return "Successful";
+    }
+
+    public String setABikeAsAvailable(Bike bike) throws ExecutionException, InterruptedException {
+        bike.setState(new Available());
+        bike.setStateString("AVAILABLE");
+        bikeService.updateBikeDetails(bike);
         return "Successful";
     }
 
