@@ -135,5 +135,33 @@ public class ActionController {
 
     }
 
+    @PostMapping("/setAStationAsActive")
+    public String setAStationAsActive(@RequestBody String stationID ){
+        try{
+            System.out.println("Post request reached here");
+            Station station = stationService.getStationDetails(stationID);
+            String message = BMS.getInstance().setAStationAsActive(station);
+            return message;
+        }
+        catch (Exception e) {
+            return "false";
+        }
+
+    }
+
+    @PostMapping("/setABikeAsAvailable")
+    public String setABikeAsAvailable(@RequestBody String BikeID ){
+        try{
+            System.out.println("Post request reached here");
+            Bike bike = bikeService.getBikeDetails(BikeID);
+            String message = BMS.getInstance().setABikeAsAvailable(bike);
+            return message;
+        }
+        catch (Exception e) {
+            return "false";
+        }
+
+    }
+
 
 }
