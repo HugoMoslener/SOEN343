@@ -6,19 +6,23 @@ import java.util.List;
 public class Station {
 
     // Attributes
-    private final String stationID;
-    private final String name;
+    private  String stationID;
+    private  String name;
     private StationOperationalState operationalState;
-    private final double latitude;
-    private final double longitude;
-    private final String address;
-    private final int capacity;
-    private List<Dock> docks;
+    private double latitude;
+    private double longitude;
+    private String address;
+    private int capacity;
+    private ArrayList<Dock> docks;
+    private Double reservationHoldTime;
     /* Note: I removed the freeDocks because it will constantly change. It is safer to call a
     method only than to an attribute and the method inside the getter. It overcomplicates
     the constructor.*/
 
     // Constructors
+
+    public Station(){
+    }
     public Station(String stationID, String name,
                    double latitude, double longitude, String address, int capacity){
         this.stationID = stationID;
@@ -29,14 +33,18 @@ public class Station {
         this.capacity = capacity;
         this.operationalState = StationOperationalState.ACTIVE; // Active by default
         this.docks = new ArrayList<>();
+        this.reservationHoldTime = 5.0;
         initializeDocks();
     }
 
     // Setters
     public void setOperationalState(StationOperationalState operationalState) { this.operationalState = operationalState; }
-    public void setDocks(List<Dock> docks) { this.docks = docks; }
+    public void setDocks(ArrayList<Dock> docks) { this.docks = docks; }
+    public void setReservationHoldTime(Double reservationHoldTime) { this.reservationHoldTime = reservationHoldTime; }
+
 
     // Getters
+    public Double  getReservationHoldTime() { return this.reservationHoldTime; }
     public String getStationID() { return stationID; }
     public String getName() { return name; }
     public StationOperationalState getOperationalState() { return operationalState; }
@@ -44,7 +52,7 @@ public class Station {
     public double getLongitude() { return longitude; }
     public String getAddress() { return address; }
     public int getCapacity() { return capacity; }
-    public List<Dock> getDocks() { return docks; }
+    public ArrayList<Dock> getDocks() { return docks; }
 
     // Method to creates docks automatically when Station is instantiated
     private void initializeDocks(){
@@ -52,6 +60,15 @@ public class Station {
             Dock dock = new Dock(stationID + "-" + i, stationID);
             // Assuming that the dockID follows this format (e.g. for station 1543, Dock is 1542-1)
             docks.add(dock);
+        }
+    }
+
+    public void updateADock(Dock dock){ // updates the information of specific Dock residing insiding the Station
+        for (int i = 0; i < docks.size(); i++) {
+            if (docks.get(i).getDockID().equals(dock.getDockID())) {
+                docks.set(i, dock);  // Replace the old object
+                return; // Exit after replacing
+            }
         }
     }
 

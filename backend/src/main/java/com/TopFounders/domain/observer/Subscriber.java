@@ -4,6 +4,6 @@ import com.TopFounders.domain.model.Bike;
 
 public interface Subscriber {
 
-    void update(String eventType, Bike bike);
+    void update(String eventType, Object object);
 
 }

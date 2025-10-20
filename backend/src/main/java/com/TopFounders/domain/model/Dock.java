@@ -1,14 +1,24 @@
 package com.TopFounders.domain.model;
 
-import javax.print.Doc;
+import com.TopFounders.application.service.BMS;
+import com.TopFounders.domain.observer.Publisher;
+import com.TopFounders.domain.observer.Subscriber;
 
-public class Dock {
+import javax.print.Doc;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Dock implements Publisher {
 
     // Attributes
-    private final String dockID;
+    private  String dockID;
     private DockState state; // EMPTY, OCCUPIED, MAINTENANCE
     private Bike bike;
-    private final String stationID;
+    private String stationID;
+    private List<Subscriber> subscribers = new ArrayList<>();
+
+    public Dock(){
+    }
 
     // Constructors
     public Dock(String dockID, String stationID){
@@ -19,7 +29,17 @@ public class Dock {
     }
 
     // Setters
-    public void setState(DockState state) { this.state = state; }
+    public void setState(DockState state) {
+        this.state = state;
+        updateState();
+        }
+
+    private void updateState(){
+        if(getState().equals(DockState.EMPTY)){ notifySubscribers("DOCK_EMPTY");}
+        if(getState().equals(DockState.OCCUPIED)){ notifySubscribers("DOCK_FULL"); }
+        if(getState().equals(DockState.OUT_OF_SERVICE)){ notifySubscribers("DOCK_OUT_OF_SERVICE");}
+    }
+
     public void setBike(Bike bike) { this.bike = bike; }
 
     // Getters
@@ -59,5 +79,21 @@ public class Dock {
     // Method to put dock back to service (for operators)
     public void repair(){
         this.state = DockState.EMPTY;
+    }
+
+    @Override
+    public void subscribe(Subscriber subscriber){
+        subscribers.add(subscriber);
+    }
+    @Override
+    public void unsubscribe(Subscriber subscriber){
+        subscribers.remove(subscriber);
+    }
+    @Override
+    public void notifySubscribers(String eventType){
+        subscribe(BMS.getInstance());
+        for (Subscriber subscriber : subscribers){
+            subscriber.update(eventType, this);
+        }
     }
 }
