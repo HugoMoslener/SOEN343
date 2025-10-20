@@ -6,8 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="24017b9e-a173-4586-8b9d-1de025c71da7" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/BMS.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/BMS.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/ui/controller/ActionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/ui/controller/ActionController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/App.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/Home.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/Home.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,6 +74,7 @@
     &quot;npm.install.executor&quot;: &quot;Run&quot;,
     &quot;npm.start.executor&quot;: &quot;Run&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\bijua\\AppData\\Roaming\\JetBrains\\IntelliJIdea2025.2\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -82,7 +83,7 @@
       <recent name="com.TopFounders.application.service" />
     </key>
   </component>
-  <component name="RunManager" selected="Maven.backend [spring-boot:run]">
+  <component name="RunManager" selected="npm.start">
     <configuration name="start" type="js.build_tools.npm" nameIsGenerated="true">
       <package-json value="$PROJECT_DIR$/frontend/package.json" />
       <command value="run" />
@@ -138,7 +139,8 @@
       <workItem from="1760708435701" duration="20729000" />
       <workItem from="1760750959515" duration="5226000" />
       <workItem from="1760798280296" duration="1978000" />
-      <workItem from="1760910886685" duration="2684000" />
+      <workItem from="1760910886685" duration="5816000" />
+      <workItem from="1760982223660" duration="418000" />
     </task>
     <servers />
   </component>
