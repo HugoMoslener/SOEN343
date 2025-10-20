@@ -1,0 +1,58 @@
+# ============================================
+# IntelliJ IDEA / VS Code project files
+# ============================================
+.idea/
+.vscode/
+*.iml
+workspace.xml
+tasks.xml
+dictionaries/
+shelf/
+httpRequests/
+IntelliLang.xml
+other.xml
+modules.xml
+
+# ============================================
+# Java / Maven / Gradle
+# ============================================
+backend/target/
+out/
+build/
+*.class
+*.log
+hs_err_pid*
+replay_pid*
+
+# ============================================
+# Node / React
+# ============================================
+node_modules/
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+
+# ============================================
+# Env / Secrets
+# ============================================
+.env
+.env.*
+**/firebase-key.json
+**/serviceAccountKey.json
+
+# ============================================
+# OS files
+# ============================================
+.DS_Store
+Thumbs.db
+
+# ============================================
+# Temporary / Misc
+# ============================================
+*.tmp
+*.bak
