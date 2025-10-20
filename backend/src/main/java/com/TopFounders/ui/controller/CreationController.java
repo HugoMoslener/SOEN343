@@ -1,0 +1,136 @@
+package com.TopFounders.ui.controller;
+
+import com.TopFounders.application.service.BikeService;
+import com.TopFounders.application.service.DockService;
+import com.TopFounders.application.service.StationService;
+import com.TopFounders.domain.factory.UserFactory;
+import com.TopFounders.domain.model.*;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+
+@SpringBootApplication
+@RestController
+@RequestMapping("/api/create")
+public class CreationController {
+
+    private final BikeService bikeService;
+    private final DockService dockService;
+    private final StationService stationService;
+
+    public CreationController(BikeService bikeService, DockService dockService, StationService stationService) {
+        this.bikeService = bikeService;
+        this.dockService = dockService;
+        this.stationService = stationService;
+    }
+
+    @PostMapping("/saveBike")
+    public String saveBikeData(@RequestBody String id ){
+        try{
+            System.out.println("Post request reached here");
+            String message = bikeService.saveBike(new Bike(id, BikeType.STANDARD));
+
+            return "true";
+        }
+        catch (Exception e) {
+            return "false";
+        }
+
+    }
+
+    @PostMapping("/saveDock")
+    public String saveDockData(@RequestBody DockHelperClass dock ){
+        try{
+            System.out.println("Post request reached here");
+            String message = dockService.saveDock(new Dock(dock.getDockID(), dock.getStationID()));
+            return "true";
+        }
+        catch (Exception e) {
+            return "false";
+        }
+
+    }
+
+    @PostMapping("/saveStation")
+    public String saveDockData(@RequestBody StationHelperClass station ){
+        try{
+            System.out.println("Post request reached here");
+            Station station2 = new Station(station.getStationID(), station.getName(), station.getLatitude(),station.getLongitude(), station.getAddress(), station.getCapacity());
+            int count = 0;
+            for(Dock dock : station2.getDocks()){
+                count++;
+
+                if(count%3!=0){
+                Bike bike ;
+
+                if(count%2==0){
+                bike = new Bike(dock.getDockID(), BikeType.STANDARD);}
+                else{
+                    bike = new EBike(dock.getDockID());
+                }
+                bike.setDockID(dock.getDockID());
+                bikeService.saveBike(bike);
+                dock.setBike(bike);
+                dock.setState(DockState.OCCUPIED);
+                dockService.saveDock(dock);}
+                else{
+                    dock.setState(DockState.EMPTY);
+                    dockService.saveDock(dock);
+                }
+
+            }
+            stationService.saveStation(station2);
+            return "true";
+        }
+        catch (Exception e) {
+            return "false";
+        }
+
+    }
+
+    @GetMapping("/getAllStations")
+    public ArrayList<Station> getStations(){
+        try{
+            System.out.println("Post request reached here");
+            ArrayList<Station> stationList = stationService.getAllStations();
+
+            return stationList;
+        }
+        catch (Exception e) {
+            return null;
+        }
+
+    }
+
+    @PostMapping("/Dockget")
+    public Dock getDock(@RequestBody String dockID){
+        try{
+            System.out.println("Post request reached here");
+            Dock stationList = dockService.getDockDetails(dockID);
+            System.out.println(stationList.getDockID());
+
+            return stationList;
+        }
+        catch (Exception e) {
+            return null;
+        }
+
+    }
+
+    @PostMapping("/Bikeget")
+    public Bike getBike(@RequestBody String bikeID){
+        try{
+            System.out.println("Post request reached here");
+            Bike stationList = bikeService.getBikeDetails(bikeID);
+            System.out.println(stationList.getBikeID());
+
+            return stationList;
+        }
+        catch (Exception e) {
+            return null;
+        }
+
+    }
+
+}

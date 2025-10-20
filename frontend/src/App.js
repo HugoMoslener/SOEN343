@@ -97,11 +97,13 @@ function App() {
             <Link to="/register" style={{ textDecoration: 'none' }}>Register</Link>
           </>
         )}
+          <Link to="/map" style={{ marginRight: '20px',marginLeft: '20px', textDecoration: 'none' }}>Map</Link>
       </nav>
 
       <Routes>
-        <Route path="/home" element=<Home1/>/>
+        <Route path="/map" element=<Home1/>/>
         <Route path="/" element={<Home user={user} onLogout={handleLogout} />} />
+          <Route path="/home" element={<Home user={user} onLogout={handleLogout} />} />
         <Route path="/login" element={
           <Login onLogin={(user) => setUser(user)} />
         } />
