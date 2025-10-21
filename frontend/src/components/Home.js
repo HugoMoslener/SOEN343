@@ -16,28 +16,28 @@ L.Icon.Default.mergeOptions({
 
 export default function Home() {
     const [stations, setStations] = useState([]);
-    const [role, setRole] = useState("rider"); // "rider" or "operator"
+    const [role, setRole] = useState(localStorage.getItem("role"));
     const [reservedBike, setReservedBike] = useState(null);
     const [movingBike, setMovingBike] = useState(null);
     const [consoleMessages, setConsoleMessages] = useState([]);
+    const[isReserved, setIsReserved] = useState(false);
+    const [isUndocking,setIsUndocked] = useState(false);
+    const [isDocked,setIsDocked] = useState(false);
+    const [reservationID, setReservationID] = useState("");
+    const [count, setCount] = useState(0);
 
     useEffect(() => {
         fetch("/api/create/getAllStations")
             .then((r) => r.json())
             .then(setStations)
             .catch((e) => console.error("Error fetching stations:", e));
-    }, []);
+    }, [count]);
 
     const logMessage = (msg) => setConsoleMessages((prev) => [msg, ...prev]);
 
-    // Rider actions
-    const handleReserve = (bike, stationID) => {
-        if (reservedBike) {
-            alert("You already have a reserved bike!");
-            return;
-        }
-        setReservedBike({ ...bike, stationID });
-        logMessage(`Reserved bike ${bike.bikeID} from station ${stationID}`);
+
+    const handleReserve = (bikeID, stationID) => {
+        setIsReserved(true);
     };
 
     const handleCheckout = () => {
@@ -45,58 +45,44 @@ export default function Home() {
             alert("No reserved bike to checkout!");
             return;
         }
+        setIsReserved(false);
+        setIsUndocked(true);
         logMessage(`Checked out bike ${reservedBike.bikeID}`);
         setReservedBike((prev) => ({ ...prev, checkedOut: true }));
+        setCount(count+1);
     };
 
-    const handleReturn = (station) => {
-        if (!reservedBike || !reservedBike.checkedOut) {
-            alert("No bike to return!");
-            return;
-        }
-        if (station.freeDocks === 0) {
-            logMessage(`Cannot return to ${station.name}: no free docks.`);
-            return;
-        }
-        logMessage(`Returned bike ${reservedBike.bikeID} to ${station.name}`);
-
-        setStations((prev) =>
-            prev.map((s) =>
-                s.stationID === station.stationID
-                    ? { ...s, bikesAvailable: s.bikesAvailable + 1, freeDocks: s.freeDocks - 1 }
-                    : s
-            )
-        );
-
+    const handleReturn = (dockID) => {
+        setIsReserved(false);
+        setIsUndocked(false);
+        setIsDocked(false);
         setReservedBike(null);
     };
 
     // Operator actions
-    const handleMoveStart = (bike, fromStation) => {
-        setMovingBike({ ...bike, fromStation });
-        logMessage(`Operator moving bike ${bike.bikeID} from ${fromStation}`);
+    const handleMoveStart = (dockID, stationID) => {
     };
 
-    const handleMoveComplete = (toStation) => {
+    const handleMoveComplete = (stationID) => {
         if (!movingBike) return;
 
-        if (movingBike.fromStation === toStation.stationID) {
+        if (movingBike.stationID === stationID.stationID) {
             logMessage("Cannot move bike to same station!");
             return;
         }
 
-        if (toStation.freeDocks === 0) {
-            logMessage(`Cannot move bike to ${toStation.name}: no free docks.`);
+        if (stationID.freeDocks === 0) {
+            logMessage(`Cannot move bike to ${stationID.name}: no free docks.`);
             return;
         }
 
-        logMessage(`Moved bike ${movingBike.bikeID} → ${toStation.name}`);
+        logMessage(`Moved bike ${movingBike.bikeID} → ${stationID.name}`);
 
         setStations((prev) =>
             prev.map((s) => {
                 if (s.stationID === movingBike.fromStation)
                     return { ...s, bikesAvailable: s.bikesAvailable - 1, freeDocks: s.freeDocks + 1 };
-                if (s.stationID === toStation.stationID)
+                if (s.stationID === stationID.stationID)
                     return { ...s, bikesAvailable: s.bikesAvailable + 1, freeDocks: s.freeDocks - 1 };
                 return s;
             })
@@ -108,23 +94,6 @@ export default function Home() {
     return (
         <div className="flex flex-col gap-4 p-4">
             <h1 className="text-2xl font-bold text-center">Bike Sharing Dashboard</h1>
-
-            {/* Role Switch */}
-            <div className="flex justify-center gap-3 mb-2">
-                <span className="font-semibold">Role:</span>
-                <button
-                    onClick={() => setRole("rider")}
-                    className={`px-3 py-1 rounded ${role === "rider" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-                >
-                    Rider
-                </button>
-                <button
-                    onClick={() => setRole("operator")}
-                    className={`px-3 py-1 rounded ${role === "operator" ? "bg-orange-600 text-white" : "bg-gray-200"}`}
-                >
-                    Operator
-                </button>
-            </div>
 
             {/* Console */}
             <div className="p-2 bg-gray-50 border rounded h-24 overflow-y-auto text-xs">
@@ -164,17 +133,20 @@ export default function Home() {
                                                     <>
                                                         <p>{dock.bike.type}</p>
                                                         BikeID: <p><strong>{dock.bike.bikeID}</strong></p>
-                                                        {role === "rider" && !reservedBike && (
+                                                        {role === "rider" && !isReserved && !isUndocking && (
                                                             <button
-                                                                onClick={() => handleReserve(dock.bike, station.stationID)}
+                                                                onClick={() => handleReserve(dock.bike.bikeID, station.stationID)}
                                                                 className="bg-blue-500 text-white px-2 py-1 mt-1 rounded text-xs"
                                                             >
                                                                 Reserve
                                                             </button>
+
+
                                                         )}
+
                                                         {role === "operator" && (
                                                             <button
-                                                                onClick={() => handleMoveStart(dock.bike, station.stationID)}
+                                                                onClick={() => handleMoveStart(dock.dockID, station.stationID)}
                                                                 className="bg-orange-500 text-white px-2 py-1 mt-1 rounded text-xs"
                                                             >
                                                                 Move
@@ -182,40 +154,43 @@ export default function Home() {
                                                         )}
                                                     </>
                                                 ) : (
+                                                    <>
                                                     <p className="italic text-gray-500 text-sm">Empty</p>
+                                                { role === "rider" && isUndocking && dock.state === "EMPTY" && (
+                                                    <button
+                                                    onClick={() => handleReturn(dock.dockID)}
+                                                className="bg-blue-500 text-white px-2 py-1 mt-1 rounded text-xs"
+                                            >
+                                                Return
+                                            </button>)}
+                                                        {role === "operator" && movingBike && dock.state === "EMPTY" && (
+                                                            <button
+                                                                onClick={() => handleMoveComplete(station)}
+                                                                className="mt-2 bg-green-700 text-white px-3 py-1 rounded"
+                                                            >
+                                                                Move Here
+                                                            </button>
+                                                        )}
+                                                    </>
                                                 )}
                                             </div>
                                         ))}
                                     </div>
 
-                                    {role === "rider" && reservedBike && (
+                                    {role === "rider" && isReserved && (
                                         <>
-                                            {!reservedBike.checkedOut ? (
+                                            {!isUndocking && (
                                                 <button
                                                     onClick={handleCheckout}
                                                     className="mt-2 bg-green-600 text-white px-3 py-1 rounded"
                                                 >
                                                     Checkout
                                                 </button>
-                                            ) : (
-                                                <button
-                                                    onClick={() => handleReturn(station)}
-                                                    className="mt-2 bg-purple-600 text-white px-3 py-1 rounded"
-                                                >
-                                                    Return
-                                                </button>
                                             )}
                                         </>
                                     )}
 
-                                    {role === "operator" && movingBike && (
-                                        <button
-                                            onClick={() => handleMoveComplete(station)}
-                                            className="mt-2 bg-green-700 text-white px-3 py-1 rounded"
-                                        >
-                                            Move Here
-                                        </button>
-                                    )}
+
                                 </div>
                             </Popup>
                         </Marker>
