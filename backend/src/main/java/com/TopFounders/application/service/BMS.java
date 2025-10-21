@@ -69,8 +69,10 @@ public class BMS implements Subscriber {
         Bike bike = MapService.getInstance().getAvailableBike(stationName,bikeID);
         System.out.println(bike.getBikeID());
         Bike bike1 = bikeService.getBikeDetails(bike.getBikeID());
-        bike1.setStateString("RESERVED");
-        bike1.setState(new Reserved());
+
+        bike1.setState(bike1.getState());
+        bike1.reserve();
+
         Dock dock = dockService.getDockDetails(bike1.getDockID());
         dock.setBike(bike1);
         System.out.println("SOme thing");
@@ -111,8 +113,10 @@ public class BMS implements Subscriber {
 
             Trip trip = reservation.createTrip(station.getAddress(),new Payment(),new PricingPlan());
             reservation.setState(ReservationState.CONFIRMED);
-            bike.setState(new OnTrip());
-            bike.setStateString("ONTRIP");
+
+            bike.setState(bike.getState());
+            bike.checkout();
+
             bike.setDockID(null);
             dock.setBike(null);
             dock.setState(DockState.EMPTY);
@@ -156,8 +160,9 @@ public class BMS implements Subscriber {
             trip.setArrival(station.getAddress());
             trip.setEndTime(LocalTime.now().toString());
 
-            bike.setState(new Available());
-            bike.setStateString("AVAILABLE");
+            bike.setState(bike.getState());
+            bike.returnBike();
+
             bike.setDockID(dockID);
             dock.setBike(bike);
             dock.setState(DockState.OCCUPIED);
@@ -200,8 +205,8 @@ public class BMS implements Subscriber {
     }
 
     public String setABikeAsMaintenance(Bike bike) throws ExecutionException, InterruptedException {
-        bike.setState(new Maintenance());
-        bike.setStateString("MAINTENANCE");
+        bike.setState(bike.getState());
+        bike.maintenance();
         bikeService.updateBikeDetails(bike);
         return "Successful";
     }

@@ -21,6 +21,8 @@ public class Bike implements Publisher {
     private String dockID;
     private List<Subscriber> subscribers = new ArrayList<>();
     private String stateString;
+    private transient boolean loadingFromFirestore = true;
+
 
     public Bike(){
     }
@@ -43,7 +45,8 @@ public class Bike implements Publisher {
     public String getStateString() { return stateString; }
     public void setStateString(String stateString) {
         this.stateString = stateString;
-        updateState();
+        if (!loadingFromFirestore) {
+        updateState();}
         }
 
     private void updateState(){
@@ -70,6 +73,10 @@ public class Bike implements Publisher {
         return state;
     }
     public String getDockID() { return dockID; }
+
+    public void markAsLoadingFromFirestore(boolean loading) {
+        this.loadingFromFirestore = loading;
+    }
 
     // Methods for Observer design pattern
     @Override

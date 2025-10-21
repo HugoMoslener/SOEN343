@@ -44,9 +44,9 @@ public class BikeService {
         System.out.println("Bike details at: " + document.getId());
 
         Bike bike = null;
-
         if(document.exists()) {
             bike = document.toObject(Bike.class);
+            bike.markAsLoadingFromFirestore(false);
             return bike;
         }else {
             return null;
@@ -55,6 +55,7 @@ public class BikeService {
 
     public String updateBikeDetails(Bike bike) throws InterruptedException, ExecutionException {
         Firestore db = FirestoreClient.getFirestore();
+        bike.markAsLoadingFromFirestore(true);
         ApiFuture<WriteResult> collectionsApiFuture = db.collection(Collection).document(bike.getBikeID()).set(bike);
         return collectionsApiFuture.get().getUpdateTime().toString();
     }

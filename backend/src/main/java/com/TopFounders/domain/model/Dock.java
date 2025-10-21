@@ -16,6 +16,7 @@ public class Dock implements Publisher {
     private Bike bike;
     private String stationID;
     private List<Subscriber> subscribers = new ArrayList<>();
+    private transient boolean loadingFromFirestore = true;
 
     public Dock(){
     }
@@ -31,7 +32,8 @@ public class Dock implements Publisher {
     // Setters
     public void setState(DockState state) {
         this.state = state;
-        updateState();
+        if (!loadingFromFirestore) {
+        updateState();}
         }
 
     private void updateState(){
@@ -47,6 +49,10 @@ public class Dock implements Publisher {
     public DockState getState() { return state; }
     public Bike getBike() { return bike; }
     public String getStationID() { return stationID; }
+
+    public void markAsLoadingFromFirestore(boolean loading) {
+        this.loadingFromFirestore = loading;
+    }
 
     // Method to occupy a bike
     public void occupy(Bike bike){
