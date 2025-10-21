@@ -5,13 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="24017b9e-a173-4586-8b9d-1de025c71da7" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/backend/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/BMS.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/BMS.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/PricingPlan.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/PricingPlan.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/components/Home.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/Home.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/BikeService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/BikeService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/DockService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/DockService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/MapService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/MapService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/StationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/StationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Bike.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Bike.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Dock.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Dock.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -56,32 +57,32 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.BackendApplication.executor": "Run",
-    "JUnit.BackendApplicationTests.executor": "Run",
-    "Maven.backend [spring-boot:run].executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "feature/improvement",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/SOEN343",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "npm.build.executor": "Run",
-    "npm.install.executor": "Run",
-    "npm.start.executor": "Run",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
-    "ts.external.directory.path": "C:\\Users\\bijua\\AppData\\Roaming\\JetBrains\\IntelliJIdea2025.2\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.BackendApplication.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.BackendApplicationTests.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.backend [spring-boot:run].executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;feature/improvement&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/SOEN343&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;npm.build.executor&quot;: &quot;Run&quot;,
+    &quot;npm.install.executor&quot;: &quot;Run&quot;,
+    &quot;npm.start.executor&quot;: &quot;Run&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\bijua\\AppData\\Roaming\\JetBrains\\IntelliJIdea2025.2\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="com.TopFounders.application.service" />
@@ -146,7 +147,8 @@
       <workItem from="1760910886685" duration="5816000" />
       <workItem from="1760982223660" duration="7978000" />
       <workItem from="1761009100533" duration="218000" />
-      <workItem from="1761049139627" duration="2081000" />
+      <workItem from="1761049139627" duration="2298000" />
+      <workItem from="1761059349901" duration="5799000" />
     </task>
     <servers />
   </component>
