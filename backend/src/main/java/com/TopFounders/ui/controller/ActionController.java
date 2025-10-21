@@ -35,6 +35,7 @@ public class ActionController {
             Rider rider = riderService.getRiderDetails(reservationHelperClass.getRiderID());
             String message = rider.reserveBike(reservationHelperClass.getStationName(), rider, reservationHelperClass.getBikeID(), reservationHelperClass.getRiderID());
             System.out.println(message);
+            if(message == null){throw new Exception("error");}
             return message;
         }
         catch (Exception e) {
