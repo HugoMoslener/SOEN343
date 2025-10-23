@@ -7,8 +7,8 @@
     <list default="true" id="24017b9e-a173-4586-8b9d-1de025c71da7" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/BMS.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/application/service/BMS.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Rider.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/domain/model/Rider.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/ui/controller/ActionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/ui/controller/ActionController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/ui/controller/MoveABikeHelperClass.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/TopFounders/ui/controller/MoveABikeHelperClass.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -144,7 +144,8 @@
       <workItem from="1760982223660" duration="7978000" />
       <workItem from="1761009100533" duration="218000" />
       <workItem from="1761049139627" duration="2298000" />
-      <workItem from="1761059349901" duration="9419000" />
+      <workItem from="1761059349901" duration="10572000" />
+      <workItem from="1761229390893" duration="2981000" />
     </task>
     <servers />
   </component>
