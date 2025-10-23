@@ -184,10 +184,10 @@ public class BMS implements Subscriber {
     }
 
     public String moveABikefromDockAToDockB(Dock dockA, Dock dockB,Bike bike) throws ExecutionException, InterruptedException {
-        if(dockA.getStationID().equals(dockB.getStationID())){return "Unsuccessful";}
+       // if(dockA.getStationID().equals(dockB.getStationID())){return "Unsuccessful";}
         if(dockA.getState() != DockState.OCCUPIED || dockB.getState() != DockState.EMPTY){return "Unsuccessful";}
         if(bike.getStateString().equals("RESERVED") || bike.getStateString().equals("ONTRIP")){return "Unsuccessful";}
-
+        System.out.println("moveabike");
         dockA.setState(DockState.EMPTY);
         dockB.setState(DockState.OCCUPIED);
         bike.setDockID(dockB.getDockID());
@@ -196,7 +196,7 @@ public class BMS implements Subscriber {
         dockService.updateDockDetails(dockA);
         dockService.updateDockDetails(dockB);
         bikeService.updateBikeDetails(bike);
-
+        System.out.println("end");
 
         return "Successful";
     }
