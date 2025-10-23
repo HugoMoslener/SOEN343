@@ -1,5 +1,6 @@
 package com.TopFounders.ui.controller;
 
+import com.TopFounders.application.service.BMS;
 import com.TopFounders.domain.model.Operator;
 import com.TopFounders.domain.model.Rider;
 import com.TopFounders.domain.model.User;
@@ -27,8 +28,7 @@ public class SignUpController {
     public String saveData(@RequestBody RiderHelperClass rider ){
         try{
             System.out.println("Post request reached here");
-            UserFactory factory = new UserFactory();
-            String message = riderService.saveRider((Rider)factory.CreateUser(rider.getUsername(),rider.getPaymentInformation(),rider.getEmail(),rider.getFullName(),rider.getAddress(), "rider"));
+            String message = BMS.getInstance().saveRiderData(rider.getUsername(),rider.getPaymentInformation(),rider.getEmail(),rider.getFullName(),rider.getAddress(), "rider");
             return "true";
         }
         catch (Exception e) {
