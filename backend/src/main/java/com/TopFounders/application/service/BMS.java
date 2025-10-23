@@ -187,12 +187,19 @@ public class BMS implements Subscriber {
        // if(dockA.getStationID().equals(dockB.getStationID())){return "Unsuccessful";}
         if(dockA.getState() != DockState.OCCUPIED || dockB.getState() != DockState.EMPTY){return "Unsuccessful";}
         if(bike.getStateString().equals("RESERVED") || bike.getStateString().equals("ONTRIP")){return "Unsuccessful";}
+
         System.out.println("moveabike");
         dockA.setState(DockState.EMPTY);
         dockB.setState(DockState.OCCUPIED);
         bike.setDockID(dockB.getDockID());
         dockB.setBike(bike);
         dockA.setBike(null);
+        Station station1 =  stationService.getStationDetails(dockA.getStationID());
+        station1.updateADock(dockA);
+        stationService.updateStationDetails(station1);
+        Station station2 =  stationService.getStationDetails(dockB.getStationID());
+        station2.updateADock(dockB);
+        stationService.updateStationDetails(station2);
         dockService.updateDockDetails(dockA);
         dockService.updateDockDetails(dockB);
         bikeService.updateBikeDetails(bike);
