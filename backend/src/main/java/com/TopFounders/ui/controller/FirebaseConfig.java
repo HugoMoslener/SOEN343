@@ -6,10 +6,9 @@ import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.io.InputStream;
 
 @Configuration
 public class FirebaseConfig {
@@ -17,17 +16,21 @@ public class FirebaseConfig {
     @PostConstruct
     public void initialize() {
         try {
-            InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream("firebase/firebase.json");
-
-            if (FirebaseApp.getApps().isEmpty()) {
-                FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+            ClassPathResource resource = new ClassPathResource("firebase.json");
+            System.out.println("🔍 Resource exists? " + resource.exists());
+            FirebaseOptions options = FirebaseOptions.builder()
+                    .setCredentials(GoogleCredentials.fromStream(resource.getInputStream()))
                     .build();
-                
+
+            if (FirebaseApp.getApps().isEmpty()) { // ✅ Prevent duplicate init and timing issue
                 FirebaseApp.initializeApp(options);
+                System.out.println("✅ Firebase has been initialized successfully!");
+            } else {
+                System.out.println("⚠️ Firebase already initialized, skipping...");
             }
-        } catch (IOException e) {
-            System.err.println("Error initializing Firebase: " + e.getMessage());
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

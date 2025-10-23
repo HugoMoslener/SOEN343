@@ -50,7 +50,13 @@ export const authService = {
   },
 
   getCurrentUser() {
-    return auth.currentUser;
+    const user = auth.currentUser;
+    if (!user) {
+      console.warn("⚠️ [authService] No user currently logged in");
+    } else {
+      console.log("✅ [authService] Logged in user:", user.email || user.uid);
+    }
+    return user;
   },
 
   onAuthStateChanged(callback) {

@@ -29,10 +29,34 @@ public class ActionController {
     @PostMapping("/reserveBike")
     public String BikeReservation(@RequestBody ReservationHelperClass reservationHelperClass ){
         try{
-            System.out.println("Post request reached here");
+            System.out.println("🔥 [ActionController] /reserveBike reached");
+
             MapService.getInstance().setStations(stationService.getAllStations());
+
+            System.out.println("📦 [ActionController] Payload -> Station: "
+                    + reservationHelperClass.getStationName()
+                    + ", BikeID: " + reservationHelperClass.getBikeID()
+                    + ", RiderID: " + reservationHelperClass.getRiderID());
+
+
             System.out.println("hello" + reservationHelperClass.getStationName()+": "+reservationHelperClass.getBikeID()+":" + reservationHelperClass.getRiderID());
+
             Rider rider = riderService.getRiderDetails(reservationHelperClass.getRiderID());
+            if (rider == null) {
+                System.out.println("❌ [ActionController] Rider is NULL! ID: "
+                        + reservationHelperClass.getRiderID());
+                return "false";
+            }
+
+            System.out.println("✅ [ActionController] Rider loaded successfully: " + rider.getUsername());
+            String message1 = rider.reserveBike(
+                    reservationHelperClass.getStationName(),
+                    rider,
+                    reservationHelperClass.getBikeID(),
+                    reservationHelperClass.getRiderID()
+            );
+            System.out.println("✅ [ActionController] rider.reserveBike() returned -> " + message1);
+
             String message = rider.reserveBike(reservationHelperClass.getStationName(), rider, reservationHelperClass.getBikeID(), reservationHelperClass.getRiderID());
             System.out.println(message);
             if(message == null){throw new Exception("error");}
