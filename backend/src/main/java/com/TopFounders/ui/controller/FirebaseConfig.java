@@ -19,12 +19,18 @@ public class FirebaseConfig {
         try {
             InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream("firebase/firebase.json");
 
+            if (serviceAccount == null) {
+                System.out.println("Firebase configuration file not found. Firebase features will be disabled.");
+                return;
+            }
+
             if (FirebaseApp.getApps().isEmpty()) {
                 FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                     .build();
                 
                 FirebaseApp.initializeApp(options);
+                System.out.println("Firebase initialized successfully.");
             }
         } catch (IOException e) {
             System.err.println("Error initializing Firebase: " + e.getMessage());
@@ -33,6 +39,9 @@ public class FirebaseConfig {
 
     @Bean
     public FirebaseAuth firebaseAuth() {
+        if (FirebaseApp.getApps().isEmpty()) {
+            return null; // Return null if Firebase is not initialized
+        }
         return FirebaseAuth.getInstance();
     }
 }
