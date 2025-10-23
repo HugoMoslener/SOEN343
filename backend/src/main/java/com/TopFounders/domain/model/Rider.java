@@ -29,13 +29,13 @@ public class Rider extends User{
 
     public String cancelBikeReservation(String reservationID, String username) throws ExecutionException, InterruptedException {
 
-        BMS.getInstance().cancelReservation(reservationID, username);
-        return "Successful";
+        String message = BMS.getInstance().cancelReservation(reservationID, username);
+        return message;
     }
 
     public String undockBike(String username, String reservationID) throws ExecutionException, InterruptedException {
-        Dashboard.getInstance().undockBike(username, reservationID);
-        return "Successful";
+        String message = Dashboard.getInstance().undockBike(username, reservationID);
+        return message;
     }
 
 }
