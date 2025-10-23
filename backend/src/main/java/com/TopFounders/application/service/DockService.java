@@ -46,6 +46,7 @@ public class DockService {
 
         if(document.exists()) {
             dock = document.toObject(Dock.class);
+            dock.markAsLoadingFromFirestore(false);
             return dock;
         }else {
             return null;
@@ -54,6 +55,7 @@ public class DockService {
 
     public String updateDockDetails(Dock dock) throws InterruptedException, ExecutionException {
         Firestore db = FirestoreClient.getFirestore();
+        dock.markAsLoadingFromFirestore(true);
         ApiFuture<WriteResult> collectionsApiFuture = db.collection(Collection).document(dock.getDockID()).set(dock);
         return collectionsApiFuture.get().getUpdateTime().toString();
     }

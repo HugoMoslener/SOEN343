@@ -41,7 +41,7 @@ public class StationService {
         DocumentSnapshot document = future.get();
 
         Station station = null;
-        System.out.println(document + "reached here");
+        //System.out.println(document + "reached here");
 
         if(document.exists()) {
             station = document.toObject(Station.class);

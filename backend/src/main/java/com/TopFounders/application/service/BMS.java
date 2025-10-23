@@ -1,5 +1,6 @@
 package com.TopFounders.application.service;
 
+import com.TopFounders.domain.factory.UserFactory;
 import com.TopFounders.domain.model.*;
 import com.TopFounders.domain.observer.Subscriber;
 import com.TopFounders.domain.state.*;
@@ -7,6 +8,7 @@ import com.TopFounders.domain.state.*;
 import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
@@ -20,6 +22,7 @@ public class BMS implements Subscriber {
     private final ReservationService reservationService  = new ReservationService();
     private final RiderService riderService  = new RiderService();
     private final TripService tripService = new TripService();
+    private final UserService userService = new UserService();
 
     private BMS(){}
 
@@ -30,9 +33,16 @@ public class BMS implements Subscriber {
         return instance;
     }
 
-    public void cancelReservation(String reservationID,String username) throws ExecutionException, InterruptedException {
+    public String saveRiderData(String username, String paymentInformation, String email, String fullName, String address, String role) throws ExecutionException, InterruptedException {
+        UserFactory factory = new UserFactory();
+        String message = riderService.saveRider((Rider)factory.CreateUser(username,paymentInformation,email,fullName,address, "rider"));
+
+        return message;
+    }
+
+    public String cancelReservation(String reservationID,String username) throws ExecutionException, InterruptedException {
         Reservation reservation = reservationService.getReservationDetails(reservationID);
-        if(reservation.getRider().getUsername().equals(username)) {
+        if((reservation.getRider().getUsername().equals(username))) {
             Bike bike1 = bikeService.getBikeDetails(reservation.getBike().getBikeID());
             bike1.setStateString("AVAILABLE");
             bike1.setState(new Available());
@@ -52,7 +62,9 @@ public class BMS implements Subscriber {
             dockService.updateDockDetails(dock);
             stationService.updateStationDetails(station);
             reservation.notifySubscribers("RESERVATION_EXPIRED");
+            return "Successful";
         }
+        return "Unsuccessful";
     }
 
 
@@ -69,8 +81,10 @@ public class BMS implements Subscriber {
         Bike bike = MapService.getInstance().getAvailableBike(stationName,bikeID);
         System.out.println(bike.getBikeID());
         Bike bike1 = bikeService.getBikeDetails(bike.getBikeID());
-        bike1.setStateString("RESERVED");
-        bike1.setState(new Reserved());
+
+        bike1.setState(bike1.getState());
+        bike1.reserve();
+
         Dock dock = dockService.getDockDetails(bike1.getDockID());
         dock.setBike(bike1);
         System.out.println("SOme thing");
@@ -107,17 +121,23 @@ public class BMS implements Subscriber {
         Dock dock = dockService.getDockDetails(bike.getDockID());
         Station station = stationService.getStationDetails(result);
         Rider rider = riderService.getRiderDetails(reservation.getRider().getUsername());
-        if((reservation.getState() == ReservationState.PENDING) & (dock.getState() == DockState.OCCUPIED) & (station.getOccupancyStatus() != StationOccupancyState.EMPTY) ){
+        if((reservation.getRider().getUsername().equals(username)) & (reservation.getState() == ReservationState.PENDING) & (dock.getState() == DockState.OCCUPIED) & (station.getOccupancyStatus() != StationOccupancyState.EMPTY) ){
+
             Trip trip = reservation.createTrip(station.getAddress(),new Payment(),new PricingPlan());
             reservation.setState(ReservationState.CONFIRMED);
-            bike.setState(new OnTrip());
-            bike.setStateString("ONTRIP");
+
+            bike.setState(bike.getState());
+            bike.checkout();
+
             bike.setDockID(null);
             dock.setBike(null);
             dock.setState(DockState.EMPTY);
             station.updateADock(dock);
             station.getOccupancyStatus();
             trip.setReservation(reservation);
+            Payment payment = new  Payment();
+            payment.setTripID(trip.getTripID());
+            trip.setPayment(payment);
             tripService.saveTrip(trip);
             stationService.updateStationDetails(station);
             dockService.updateDockDetails(dock);
@@ -144,13 +164,17 @@ public class BMS implements Subscriber {
         Station station = stationService.getStationDetails(result);
         Rider rider = riderService.getRiderDetails(reservation.getRider().getUsername());
 
-        if((reservation.getState() == ReservationState.CONFIRMED) & (dock.getState() == DockState.EMPTY) & (station.getOccupancyStatus() != StationOccupancyState.FULL) ){
-
+        if((reservation.getRider().getUsername().equals(username)) & (reservation.getState() == ReservationState.CONFIRMED) & (dock.getState() == DockState.EMPTY) & (station.getOccupancyStatus() != StationOccupancyState.FULL) ){
+            Payment payment = trip.getPayment();
+            payment.setPaidDate(LocalDate.now().toString());
+            payment.setPaymentMethod(rider.getPaymentInformation());
+            trip.setPayment(payment);
             trip.setArrival(station.getAddress());
             trip.setEndTime(LocalTime.now().toString());
 
-            bike.setState(new Available());
-            bike.setStateString("AVAILABLE");
+            bike.setState(bike.getState());
+            bike.returnBike();
+
             bike.setDockID(dockID);
             dock.setBike(bike);
             dock.setState(DockState.OCCUPIED);
@@ -168,19 +192,26 @@ public class BMS implements Subscriber {
     }
 
     public String moveABikefromDockAToDockB(Dock dockA, Dock dockB,Bike bike) throws ExecutionException, InterruptedException {
-        if(dockA.getStationID().equals(dockB.getStationID())){return "Unsuccessful";}
+       // if(dockA.getStationID().equals(dockB.getStationID())){return "Unsuccessful";}
         if(dockA.getState() != DockState.OCCUPIED || dockB.getState() != DockState.EMPTY){return "Unsuccessful";}
         if(bike.getStateString().equals("RESERVED") || bike.getStateString().equals("ONTRIP")){return "Unsuccessful";}
 
+        System.out.println("moveabike");
         dockA.setState(DockState.EMPTY);
         dockB.setState(DockState.OCCUPIED);
         bike.setDockID(dockB.getDockID());
         dockB.setBike(bike);
         dockA.setBike(null);
+        Station station1 =  stationService.getStationDetails(dockA.getStationID());
+        station1.updateADock(dockA);
+        stationService.updateStationDetails(station1);
+        Station station2 =  stationService.getStationDetails(dockB.getStationID());
+        station2.updateADock(dockB);
+        stationService.updateStationDetails(station2);
         dockService.updateDockDetails(dockA);
         dockService.updateDockDetails(dockB);
         bikeService.updateBikeDetails(bike);
-
+        System.out.println("end");
 
         return "Successful";
     }
@@ -193,8 +224,8 @@ public class BMS implements Subscriber {
     }
 
     public String setABikeAsMaintenance(Bike bike) throws ExecutionException, InterruptedException {
-        bike.setState(new Maintenance());
-        bike.setStateString("MAINTENANCE");
+        bike.setState(bike.getState());
+        bike.maintenance();
         bikeService.updateBikeDetails(bike);
         return "Successful";
     }
@@ -213,6 +244,25 @@ public class BMS implements Subscriber {
         return "Successful";
     }
 
+    public ArrayList<Trip> getAllTripsForRiderOrOperator(String username) throws ExecutionException, InterruptedException {
+        User user = userService.getUserDetails(username);
+        ArrayList<Trip> trips = tripService.getAllTrip();
+        if(user.getRole().equals("rider")){
+            ArrayList<Trip> trips1 = tripService.getAllTrip();
+            for(Trip trip : trips){
+                if(trip != null){
+                    if(trip.getReservation().getRider().getUsername().equals(username)){
+                        trips1.add(trip);
+                    }
+                }
+            }
+            return trips1;
+        }
+        else if (user.getRole().equals("operator")){
+            return trips;
+        }
+        return null;
+    }
 
 
 
