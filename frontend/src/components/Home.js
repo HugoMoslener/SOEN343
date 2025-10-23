@@ -38,6 +38,7 @@ export default function Home() {
 
     const handleReserve = (bikeID, stationID) => {
         setIsReserved(true);
+        setCount(count + 1);
     };
 
     const handleCheckout = () => {
