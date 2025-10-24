@@ -12,34 +12,55 @@ import com.google.firebase.cloud.FirestoreClient;
 import java.util.concurrent.ExecutionException;
 
 public class UserService {
-    private static final String User_Collection="users";
+    private static final String USER_COLLECTION = "users";
 
     public UserService(){}
 
     public User getUserDetails(String username) throws InterruptedException, ExecutionException {
-        Firestore db = FirestoreClient.getFirestore();
-        DocumentReference documentReference = db.collection(User_Collection).document(username);
-        ApiFuture<DocumentSnapshot> future = documentReference.get();
+        try {
+            System.out.println("🔍 Looking up user: " + username);
 
-        DocumentSnapshot document = future.get();
+            Firestore db = FirestoreClient.getFirestore();
+            DocumentReference docRef = db.collection(USER_COLLECTION).document(username);
+            DocumentSnapshot document = docRef.get().get();
 
-        User user = null;
-
-        if(document.exists()) {
-            user = document.toObject(User.class);
-            if(user.getRole().equalsIgnoreCase("rider")){
-                user = document.toObject(Rider.class);
-                return user;
+            if (!document.exists()) {
+                System.out.println("❌ User not found: " + username);
+                return null;
             }
-            return document.toObject(Operator.class);
-        }else {
-            return null;
+
+            // Get role first to determine type
+            String role = document.getString("role");
+            System.out.println("🎭 User role: " + role);
+
+            if (role == null) {
+                System.out.println("⚠️ No role found, using generic User class");
+                return document.toObject(User.class);
+            }
+
+            switch (role.toLowerCase()) {
+                case "rider":
+                    Rider rider = document.toObject(Rider.class);
+                    System.out.println("✅ Converted to Rider: " + (rider != null ? rider.getUsername() : "null"));
+                    return rider;
+                case "operator":
+                    Operator operator = document.toObject(Operator.class);
+                    System.out.println("✅ Converted to Operator: " + (operator != null ? operator.getUsername() : "null"));
+                    return operator;
+                default:
+                    System.out.println("⚠️ Unknown role, using generic User");
+                    return document.toObject(User.class);
+            }
+        } catch (Exception e) {
+            System.out.println("💥 ERROR in getUserDetails: " + e.getMessage());
+            e.printStackTrace();
+            throw new ExecutionException(e);
         }
     }
 
     public String deleteUser(String username) {
         Firestore db = FirestoreClient.getFirestore();
-        ApiFuture<WriteResult> writeResult = db.collection(User_Collection).document(username).delete();
+        ApiFuture<WriteResult> writeResult = db.collection(USER_COLLECTION).document(username).delete();
         return "User with username "+username+" has been deleted";
     }
 }
