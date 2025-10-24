@@ -25,6 +25,7 @@ export default function Home() {
     const [consoleMessages, setConsoleMessages] = useState([]);
     const [isReserved, setIsReserved] = useState(false);
     const [isUndocking, setIsUndocked] = useState(false);
+    const [isMoving, setIsMoving] = useState(true);
     const [reservationID, setReservationID] = useState("");
     const [count, setCount] = useState(0);
 
@@ -114,6 +115,7 @@ export default function Home() {
                 });
                 logMessage(`Reserved bike ${bikeID}! ID: ${result}`);
                 setCount(c => c + 1);
+                fetchStations();
             } else {
                 logMessage(`❌ Reservation failed for bike ${bikeID}.`);
             }
@@ -151,6 +153,7 @@ export default function Home() {
                 setReservedBike((prev) => ({ ...prev, checkedOut: true }));
                 logMessage(`Checked out bike ${reservedBike.bikeID}.`);
                 setCount(c => c + 1);
+                fetchStations();
             } else {
                 logMessage("Checkout failed. Bike may no longer be available.");
             }
@@ -188,6 +191,7 @@ export default function Home() {
                 setReservationID("");
                 logMessage(`✅ Trip complete! Bike returned to dock ${dockID}. Trip Summary: ${message}`);
                 setCount(c => c + 1);
+                fetchStations();
             } else {
                 logMessage("❌ Return failed. Check if dock is free or station is active.");
             }
@@ -223,6 +227,7 @@ export default function Home() {
                 setReservationID("");
                 logMessage(`✅ Reservation cancelled successfully.`);
                 setCount(c => c + 1);
+                fetchStations();
             } else {
                 logMessage(`❌ Reservation cancellation failed. ${message}`);
             }
@@ -242,6 +247,8 @@ export default function Home() {
         }
         logMessage(`Operator picked up bike ${bikeID} from Dock ${dockID}. Ready to move.`);
         setMovingBike({ dockID, fromStation: stationID, bikeID, operatorID: userId });
+        fetchStations();
+        setIsMoving(false);
     };
 
     const handleMoveComplete = (targetStation, targetDockID) => {
@@ -280,6 +287,8 @@ export default function Home() {
                 logMessage(`✅ Move successful! ${message}`);
                 setMovingBike(null);
                 setCount(c => c + 1);
+                setIsMoving(true);
+                fetchStations();
             } else {
                 logMessage(`❌ Move failed. ${message}`);
             }
@@ -309,6 +318,7 @@ export default function Home() {
             if (message && message !== "false" && !message.includes("Error")) {
                 logMessage(`✅ Station ${stationID} status updated: ${message}`);
                 setCount(c => c + 1);
+                fetchStations();
             } else {
                 logMessage(`❌ Station status update failed. ${message}`);
             }
@@ -392,12 +402,12 @@ export default function Home() {
 
                                     {role === "operator" && (
                                         <button
-                                            onClick={() => handleToggleStationService(station.stationID, station.status)}
+                                            onClick={() => handleToggleStationService(station.stationID, station.operationalState)}
                                             className={`mt-2 ${
-                                                station.status === 'ACTIVE' ? 'bg-yellow-500' : 'bg-green-500'
+                                                station.operationalState === 'ACTIVE' ? 'bg-yellow-500' : 'bg-green-500'
                                             } text-white px-3 py-1 rounded`}
                                         >
-                                            {station.status === 'ACTIVE' ? 'Set Out of Service' : 'Set Active'}
+                                            {station.operationalState === 'ACTIVE' ? 'Set Out of Service' : 'Set Active'}
                                         </button>
                                     )}
 
@@ -423,7 +433,7 @@ export default function Home() {
                                                                 Reserve
                                                             </button>
                                                         )}
-                                                        {role === "operator" && (
+                                                        {role === "operator" && isMoving && (
                                                             <button
                                                                 onClick={() => handleMoveStart(dock.dockID, station.stationID, dock.bike.bikeID)}
                                                                 className="bg-orange-500 text-white px-2 py-1 mt-1 rounded text-xs"
