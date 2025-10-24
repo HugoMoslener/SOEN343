@@ -96,7 +96,6 @@ public class ActionController {
     public String moveABikefromDockAToDockB(@RequestBody MoveABikeHelperClass moveABikeHelperClass){
         try{
             System.out.println("Post request reached here");
-            System.out.println(moveABikeHelperClass.getDock1ID()+ ":"+moveABikeHelperClass.getDock2ID()+":"+moveABikeHelperClass.getBikeID());
             Dock dock1 = dockService.getDockDetails(moveABikeHelperClass.getDock1ID());
             Dock dock2 = dockService.getDockDetails(moveABikeHelperClass.getDock2ID());
             Bike bike = bikeService.getBikeDetails(moveABikeHelperClass.getBikeID());
