@@ -6,6 +6,25 @@ import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import { authService } from '../services/authService'; // Adjust path as needed
+import redIconUrl from "leaflet-color-markers/img/marker-icon-red.png";
+import yellowIconUrl from "leaflet-color-markers/img/marker-icon-yellow.png";
+import greenIconUrl from "leaflet-color-markers/img/marker-icon-green.png";
+
+function getMarkerIcon(fullness) {
+    let iconUrl;
+    if (fullness === 0 || fullness === 100) iconUrl = redIconUrl;
+    else if (fullness < 25 || fullness > 85) iconUrl = yellowIconUrl;
+    else iconUrl = greenIconUrl;
+
+    return new L.Icon({
+        iconUrl,
+        shadowUrl: markerShadow,
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41],
+    });
+}
 
 // Fix Leaflet marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -15,6 +34,11 @@ L.Icon.Default.mergeOptions({
     shadowUrl: markerShadow,
 });
 
+function getStationColor(fullness) {
+    if (fullness === 0 || fullness === 100) return "red";
+    if (fullness < 25 || fullness > 85) return "yellow";
+    return "green";
+}
 export default function Home() {
     const [stations, setStations] = useState([]);
     const [user, setUser] = useState(null);
@@ -27,7 +51,14 @@ export default function Home() {
     const [isUndocking, setIsUndocked] = useState(false);
     const [isMoving, setIsMoving] = useState(true);
     const [reservationID, setReservationID] = useState("");
+    const [reservationExpiry, setReservationExpiry] = useState(null);
     const [count, setCount] = useState(0);
+    const [startingDock, setStartingDock] = useState("");
+    const [bikesAvailable, setBikesAvailable] = useState(0);
+    const [stationState, setStationState] = useState("");
+    const [tripSummary,setTripSummary] = useState(null);
+    const [istripSummary,setIsTripSummary] = useState(false);
+    const [selectedStation, setSelectedStation] = useState(null);
 
     const fetchUserDetails = async (firebaseUser) => {
         try {
@@ -81,7 +112,7 @@ export default function Home() {
 
     const logMessage = (msg) => setConsoleMessages((prev) => [msg, ...prev]);
 
-    const handleReserve = (bikeID, stationID, stationName) => {
+    const handleReserve = (bikeID, stationID, stationName, stationStatus, stationBikesAvailable) => {
         if (!userId || isReserved || role !== 'rider') {
             logMessage("Error: Must be a logged-in Rider without an active reservation.");
             return;
@@ -115,6 +146,11 @@ export default function Home() {
                 });
                 logMessage(`Reserved bike ${bikeID}! ID: ${result}`);
                 setCount(c => c + 1);
+                setBikesAvailable(stationBikesAvailable);
+                setStationState(stationStatus);
+                const now = new Date();
+                now.setMinutes(now.getMinutes() + 5);
+                setReservationExpiry(now.toLocaleTimeString());
                 fetchStations();
             } else {
                 logMessage(`❌ Reservation failed for bike ${bikeID}.`);
@@ -152,6 +188,8 @@ export default function Home() {
                 setIsUndocked(true);
                 setReservedBike((prev) => ({ ...prev, checkedOut: true }));
                 logMessage(`Checked out bike ${reservedBike.bikeID}.`);
+                setStationState(null);
+                setReservationExpiry(null);
                 setCount(c => c + 1);
                 fetchStations();
             } else {
@@ -162,6 +200,8 @@ export default function Home() {
     };
 
     const handleReturn = (dockID, stationName) => {
+        alert(dockID);
+        alert(stationName);
         if (!reservedBike || !reservedBike.checkedOut) {
             logMessage("No bike currently checked out to return.");
             return;
@@ -183,17 +223,26 @@ export default function Home() {
             body: JSON.stringify(dockingData),
         })
         .then((r) => r.text())
-        .then((message) => {
-            if (message && message !== "false") {
+        .then((trip) => {
+            if (trip) {
                 setIsUndocked(false);
                 setIsReserved(false);
                 setReservedBike(null);
                 setReservationID("");
-                logMessage(`✅ Trip complete! Bike returned to dock ${dockID}. Trip Summary: ${message}`);
+                let tripData;
+                try {
+                    tripData = JSON.parse(trip); // try parse as JSON
+                } catch {
+                    tripData = trip; // fallback to string if not JSON
+                }
+                logMessage(`✅ Trip complete! Bike returned to dock ${dockID}. Trip ID: ${tripData.tripID}`);
+                setTripSummary(tripData);
+                setIsTripSummary(true);
                 setCount(c => c + 1);
                 fetchStations();
             } else {
                 logMessage("❌ Return failed. Check if dock is free or station is active.");
+                triggerStationEvent();
             }
         })
         .catch((e) => logMessage(`❌ Network error during return: ${e.message}`));
@@ -246,6 +295,7 @@ export default function Home() {
             return;
         }
         logMessage(`Operator picked up bike ${bikeID} from Dock ${dockID}. Ready to move.`);
+        setStartingDock(dockID);
         setMovingBike({ dockID, fromStation: stationID, bikeID, operatorID: userId });
         fetchStations();
         setIsMoving(false);
@@ -288,6 +338,7 @@ export default function Home() {
                 setMovingBike(null);
                 setCount(c => c + 1);
                 setIsMoving(true);
+                setStartingDock("");
                 fetchStations();
             } else {
                 logMessage(`❌ Move failed. ${message}`);
@@ -326,6 +377,44 @@ export default function Home() {
         .catch(e => logMessage(`❌ Network error: ${e.message}`));
     }
 
+    const triggerStationEvent = () => {
+        logMessage(`❌ Error: Return the bike to another station.`);
+    }
+    function getOccupancyPercent(station) {
+        if(station === null) {return 0;}
+        if(station.docks === null || station.docks === undefined) {return 0;}
+        if(station.bikesAvailable === null || station.bikesAvailable === undefined) {return 0;}
+        const totalDocks = station.docks.length;
+        const bikesAvailable = station.bikesAvailable;
+        // Round to nearest integer
+        return Math.round((bikesAvailable / totalDocks) * 100);
+    }
+
+    const handleChangeBikeStatus = (bikeID, bikeStatus) => {
+        const endpoint = bikeStatus === 'AVAILABLE' ? "/api/action/setABikeAsMaintenance" : "/api/action/setABikeAsAvailable";
+        const action = bikeStatus === 'AVAILABLE' ? "Maintenance" : "Available";
+        logMessage(`Setting bike ${bikeID} to ${action}...`);
+
+        fetch(endpoint, {
+            method: "POST",
+            headers: {
+                "Content-Type": "text/plain"
+            },
+            body: bikeID,
+        })
+            .then(r => r.text())
+            .then(message => {
+                if (message && message !== "false" && !message.includes("Error")) {
+                    logMessage(`✅ Bike ${bikeID} status updated: ${message}`);
+                    setCount(c => c + 1);
+                    fetchStations();
+                } else {
+                    logMessage(`❌ Bike status update failed. ${message}`);
+                }
+            })
+            .catch(e => logMessage(`❌ Network error: ${e.message}`));
+    }
+
     return (
         <div className="flex flex-col gap-4 p-4">
             <h1 className="text-2xl font-bold text-center">Bike Sharing Dashboard</h1>
@@ -335,13 +424,23 @@ export default function Home() {
                 {user ? (
                     <>
                         <p><strong>User:</strong> {user.fullName || user.username} | <strong>Role:</strong> {role}</p>
+                        <p><strong>Username:</strong> {user.username}</p>
                         <p><strong>Email:</strong> {user.email}</p>
+                        {selectedStation !== null && (
+                            <>
+                                <p><strong>Selected Station</strong></p>
+                                <p>Station Name: {selectedStation.name}</p>
+                                <p>Bikes Available: {selectedStation.bikesAvailable}</p>
+                                <p>Free Docks: {selectedStation.freeDocks}</p>
+                                <p>Capacity: {selectedStation.docks.length}</p>
+                            </>
+                        )}
                     </>
                 ) : (
                     <p>Please log in to use the system</p>
                 )}
                 {reservedBike && (
-                    <p><strong>Active Reservation:</strong> Bike {reservedBike.bikeID} at {reservedBike.stationName}</p>
+                    <p><strong>Active Reservation:</strong> Bike {reservedBike.bikeID} at {reservedBike.name}</p>
                 )}
                 {movingBike && (
                     <p><strong>Moving Bike:</strong> Bike {movingBike.bikeID} from Dock {movingBike.dockID}</p>
@@ -359,13 +458,17 @@ export default function Home() {
             <div className="flex gap-2">
                 {isReserved && reservedBike && !reservedBike.checkedOut && (
                     <button
-                        onClick={handleCancelReservation}
+                        onClick={() => {
+                            handleCancelReservation();
+                            setSelectedStation(null);
+                            setReservationExpiry(null);
+                        }}
                         className="bg-red-500 text-white px-4 py-2 rounded"
                     >
                         Cancel Reservation
                     </button>
                 )}
-                {isReserved && reservedBike && !reservedBike.checkedOut && (
+                {isReserved && reservedBike && !reservedBike.checkedOut && stationState === "ACTIVE" && bikesAvailable !== 0 && (
                     <button
                         onClick={handleCheckout}
                         className="bg-green-600 text-white px-4 py-2 rounded"
@@ -375,7 +478,9 @@ export default function Home() {
                 )}
                 {movingBike && (
                     <button
-                        onClick={() => setMovingBike(null)}
+                        onClick={() => {setMovingBike(null);
+                            setIsMoving(true);
+                            setSelectedStation(null);}}
                         className="bg-gray-500 text-white px-4 py-2 rounded"
                     >
                         Cancel Move
@@ -392,17 +497,20 @@ export default function Home() {
                     />
 
                     {stations.map((station) => (
-                        <Marker key={station.stationID} position={[station.latitude, station.longitude]}>
-                            <Popup>
+                        <Marker key={station.stationID} position={[station.latitude, station.longitude]} icon={getMarkerIcon(getOccupancyPercent(station))}>
+                            <Popup className={`popup-${getStationColor(getOccupancyPercent(station))}`}>
                                 <div style={{ maxHeight: "400px", overflowY: "auto", width: "300px" }}>
-                                    <p><strong>{station.name}</strong></p>
-                                    <p>{station.address}</p>
+                                    <p><strong>Name : {station.name}</strong></p>
+                                    <p>Address: {station.address}</p>
                                     <p>Bikes Available: {station.bikesAvailable}</p>
                                     <p>Free Docks: {station.freeDocks}</p>
-
+                                    <p>Capacity: {station.docks.length}</p>
+                                    <p>Bikes/Capacity: {station.bikesAvailable}/{station.docks.length}= { Math.round(station.bikesAvailable/station.docks.length * 100)} %</p>
+                                    <p>Reservation Hold Time: 5 minutes</p>
                                     {role === "operator" && (
                                         <button
-                                            onClick={() => handleToggleStationService(station.stationID, station.operationalState)}
+                                            onClick={() => {handleToggleStationService(station.stationID, station.operationalState);
+                                                setSelectedStation(station);}}
                                             className={`mt-2 ${
                                                 station.operationalState === 'ACTIVE' ? 'bg-yellow-500' : 'bg-green-500'
                                             } text-white px-3 py-1 rounded`}
@@ -416,46 +524,63 @@ export default function Home() {
                                             <div
                                                 key={dock.dockID}
                                                 className={`p-2 border rounded ${
-                                                    dock.state === "OCCUPIED" ? "bg-green-100" : "bg-gray-100"
+                                                    dock.state === "OCCUPIED" ? "bg-green-200 text-black" : "bg-gray-100 text-black"
                                                 }`}
                                             >
-                                                <p><strong>Dock {dock.dockID}</strong></p>
-                                                <p>State: {dock.state}</p>
+                                                <p><strong>Dock {dock.dockID} {dock?.bike?.type === "E_BIKE" && <span>( E )</span>}</strong></p>
+                                                <p>State: <strong>{dock.state}</strong></p>
                                                 {dock.bike ? (
                                                     <>
-                                                        <p>{dock.bike.type}</p>
+                                                        <p>BikeType : <strong>{dock.bike.type}</strong></p>
                                                         <p>BikeID: <strong>{dock.bike.bikeID}</strong></p>
-                                                        {role === "rider" && !isReserved && !isUndocking && (
+                                                        <p>BikeStatus: <strong>{dock.bike.stateString}</strong></p>
+
+                                                        {reservationExpiry !== null && reservedBike.bikeID === dock.bike.bikeID && ( <p>Reservation Expiry: <strong>{reservationExpiry}</strong></p>)}
+
+                                                        {role === "rider" && !isReserved && !isUndocking && station.operationalState === "ACTIVE" && dock.bike.stateString === "AVAILABLE" && dock.state === "OCCUPIED" &&(
                                                             <button
-                                                                onClick={() => handleReserve(dock.bike.bikeID, station.stationID, station.name)}
+                                                                onClick={() => {handleReserve(dock.bike.bikeID, station.stationID, station.name,station.operationalState,station.bikesAvailable);
+                                                                setSelectedStation(station);}}
                                                                 className="bg-blue-500 text-white px-2 py-1 mt-1 rounded text-xs"
                                                             >
                                                                 Reserve
                                                             </button>
                                                         )}
-                                                        {role === "operator" && isMoving && (
+                                                        {role === "operator" && isMoving && dock.state === "OCCUPIED" && (
                                                             <button
-                                                                onClick={() => handleMoveStart(dock.dockID, station.stationID, dock.bike.bikeID)}
+                                                                onClick={() => {handleMoveStart(dock.dockID, station.stationID, dock.bike.bikeID);
+                                                                setSelectedStation(station);}}
                                                                 className="bg-orange-500 text-white px-2 py-1 mt-1 rounded text-xs"
                                                             >
                                                                 Move
+                                                            </button>
+                                                        )} <br/>
+                                                        {role === "operator" && isMoving && (dock.state === "OCCUPIED" || dock.state === "OUT_OF_SERVICE") && (dock.bike.stateString === "AVAILABLE" ||dock.bike.stateString === "MAINTENANCE") && (
+                                                            <button
+                                                                onClick={() => {handleChangeBikeStatus(dock.bike.bikeID,dock.bike.stateString);
+                                                                    setSelectedStation(station);}}
+                                                                className="bg-red-500 text-white px-2 py-1 mt-1 rounded text-xs"
+                                                            >
+                                                                {dock.bike.stateString === "AVAILABLE" ? ("Set as Maintenance") : ("Set as Available")}
                                                             </button>
                                                         )}
                                                     </>
                                                 ) : (
                                                     <>
                                                         <p className="italic text-gray-500 text-sm">Empty</p>
-                                                        {role === "rider" && isUndocking && dock.state === "EMPTY" && (
+                                                        {role === "rider" && isUndocking && dock.state === "EMPTY" && station.freeDocks !== 0 && station.operationalState === "ACTIVE" && (
                                                             <button
-                                                                onClick={() => handleReturn(dock.dockID, station.name)}
+                                                                onClick={() => {handleReturn(dock.dockID, station.name);
+                                                                    setSelectedStation(null);}}
                                                                 className="bg-blue-500 text-white px-2 py-1 mt-1 rounded text-xs"
                                                             >
                                                                 Return
                                                             </button>
                                                         )}
-                                                        {role === "operator" && movingBike && dock.state === "EMPTY" && (
+                                                        {role === "operator" && movingBike && dock.state === "EMPTY" && startingDock !== dock.dockID && (
                                                             <button
-                                                                onClick={() => handleMoveComplete(station, dock.dockID)}
+                                                                onClick={() => {handleMoveComplete(station, dock.dockID);
+                                                                setSelectedStation(null);}}
                                                                 className="mt-2 bg-green-700 text-white px-3 py-1 rounded text-xs"
                                                             >
                                                                 Move Here
@@ -472,6 +597,99 @@ export default function Home() {
                     ))}
                 </MapContainer>
             </div>
+            {/* Trip Summary Section */}
+            {istripSummary && ( <div className="mt-6 bg-white border border-gray-200 rounded-2xl shadow-md p-5 w-full max-w-4xl mx-auto">
+
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
+                    Trip Summary
+                </h2>
+                {/* General Trip Info */}
+                    <div className="border-t border-gray-200 pt-4 mt-4">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-2">Base Information</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-gray-700 text-sm mb-6">
+
+                    <div>
+                        <p><span className="font-medium">Trip ID:</span> {tripSummary.tripID}</p>
+                    </div>
+                    <div>
+                        <p><span className="font-medium">Start Time:</span> {tripSummary.startTime}</p>
+                    </div>
+                    <div>
+                        <p><span className="font-medium">End Time:</span> {tripSummary.endTime}</p>
+                    </div>
+                    <div>
+                        <p><span className="font-medium">Origin:</span> {tripSummary.origin}</p>
+                    </div>
+                    <div>
+                        <p><span className="font-medium">Arrival:</span> {tripSummary.arrival}</p>
+                    </div>
+                    <div>
+                        <p><span className="font-medium">Bike ID:</span> {tripSummary.reservation?.bike?.bikeID}</p>
+                    </div>
+                    <div>
+                        <p><span className="font-medium">Bike Type:</span> {tripSummary.reservation?.bike?.type}</p>
+                    </div>
+                    <div>
+                        <p><span className="font-medium">Reservation Date:</span> {tripSummary.reservation?.date}</p>
+                    </div>
+                    <div>
+                        <p><span className="font-medium">Reservation State:</span> {tripSummary.reservation?.state}</p>
+                    </div>
+                </div>
+                    </div>
+
+                {/* Pricing Plan Section */}
+                <div className="border-t border-gray-200 pt-4 mt-4">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Pricing Plan</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 text-sm">
+                        <div>
+                            <p><span className="font-medium">Plan Name:</span> {tripSummary.pricingPlan?.planName || "N/A"}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Rate per Minute:</span>
+                                {tripSummary.pricingPlan?.ratePerMinute
+                                    ? `$${tripSummary.pricingPlan.ratePerMinute}`
+                                    : "N/A"}
+                            </p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Base Fee:</span>
+                                {tripSummary.pricingPlan?.baseFee
+                                    ? `$${tripSummary.pricingPlan.baseFee}`
+                                    : "N/A"}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Payment Section */}
+                <div className="border-t border-gray-200 pt-4 mt-4">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Payment Information</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 text-sm">
+                        <div>
+                            <p><span className="font-medium">Payment Method:</span> {tripSummary.payment?.paymentMethod || "N/A"}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Paid Date:</span> {tripSummary.payment?.paidDate || "N/A"}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Total Amount:</span>
+                                {tripSummary.payment?.amount
+                                    ? `$${tripSummary.payment.amount}`
+                                    : "N/A"}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <br/>
+                    <div className="flex justify-center">
+                <button
+                    onClick={() => setIsTripSummary(false)}
+                    className="bg-red-500 text-white hover:bg-red-600 rounded-lg px-4 py-2 transition font-medium">
+                    Close
+                </button>
+                    </div>
+            </div>)}
         </div>
     );
 }

@@ -56,46 +56,74 @@ const Login = ({ onLogin }) => {
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '0 auto', padding: '20px' }}>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '15px' }}>
-          <label>Username:</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-          />
-        </div>
-        <div style={{ marginBottom: '15px' }}>
-          <label>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-          />
-        </div>
-        {error && <div style={{ color: 'red', marginBottom: '15px' }}>{error}</div>}
-        <button 
-          type="submit" 
-          disabled={loading}
-          style={{ 
-            width: '100%', 
-            padding: '10px', 
-            backgroundColor: '#007bff', 
-            color: 'white', 
-            border: 'none',
-            borderRadius: '4px'
-          }}
-        >
-          {loading ? 'Logging in...' : 'Login'}
-        </button>
-      </form>
-    </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4">
+          <div className="w-full max-w-md">
+              <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
+                  {/* Header */}
+                  <div className="text-center space-y-2">
+                      <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
+                      <p className="text-gray-600">Sign up to create your account</p>
+                  </div>
+
+                  {/* Error Message */}
+                  {error && (
+                      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>
+                  )}
+
+                  {/* Form */}
+                  <form onSubmit={handleSubmit} className="space-y-5">
+                      {/* Email Input */}
+                      <div className="space-y-2">
+                          <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                              Username
+                          </label>
+                          <input
+                              id="username"
+                              type="text"
+                              value={username}
+                              onChange={(e) => setUsername(e.target.value)}
+                              required
+                              placeholder="Enter your username"
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none placeholder:text-gray-400"
+                          />
+                      </div>
+
+                      {/* Password Input */}
+                      <div className="space-y-2">
+                          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                              Password
+                          </label>
+                          <input
+                              id="password"
+                              type="password"
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
+                              required
+                              placeholder="Enter your password"
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none placeholder:text-gray-400"
+                          />
+                      </div>
+
+                      {/* Submit Button */}
+                      <button
+                          type="submit"
+                          disabled={loading}
+                          className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg disabled:cursor-not-allowed"
+                      >
+                          {loading ? "Signing in..." : "Sign In"}
+                      </button>
+                  </form>
+                  <div className="mt-6 text-center">
+                      <p className="text-sm text-slate-600">
+                          Don't have an account?{" "}
+                          <a href="/Register" className="text-blue-600 hover:text-blue-700 font-medium">
+                              Sign up
+                          </a>
+                      </p>
+                  </div>
+              </div>
+          </div>
+      </div>
   );
 };
 

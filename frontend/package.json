@@ -10,6 +10,7 @@
     "@testing-library/user-event": "^13.5.0",
     "firebase": "^12.3.0",
     "leaflet": "^1.9.4",
+    "leaflet-color-markers": "^0.1.0",
     "react": "^19.0.0-rc.1",
     "react-dom": "^19.0.0-rc.1",
     "react-leaflet": "^5.0.0",
@@ -40,5 +41,11 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.16",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.18"
   }
 }
