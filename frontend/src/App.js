@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link} from "react-router-dom";
 import { useState, useEffect } from 'react';
 import Login from './components/Login';
 import Register from './components/Register';
@@ -9,7 +9,6 @@ import Billing from './components/Billing';
 import Pricing from './components/Pricing';
 import RideHistory from './components/RideHistory';
 import { authService } from './services/authService';
-
 function Home({ user, onLogout }) {
   return (
     <div className="App">
@@ -76,7 +75,7 @@ function Home({ user, onLogout }) {
 function App() {
   const [user, setUser] = useState(null);
 
-  useEffect(() => {
+    useEffect(() => {
     const unsubscribe = authService.onAuthStateChanged((user) => {
       setUser(user);
 
@@ -89,6 +88,7 @@ function App() {
     await authService.logout();
     localStorage.clear();
     setUser(null);
+
   };
 
   return (
@@ -148,7 +148,10 @@ function App() {
                     {user && (
                         <div className="text-slate-700 hover:text-blue-600 font-medium transition-colors duration-200">
                             <button
-                                onClick={handleLogout}
+                                onClick={async () => {
+                                    await handleLogout();
+                                    window.location.href = "/login";
+                                }}
                                 style={{
                                     padding: '10px 20px',
                                     backgroundColor: '#dc3545',

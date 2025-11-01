@@ -433,6 +433,7 @@ export default function Home() {
     return (
         <div className="flex flex-col gap-4 p-4">
             <h1 className="text-2xl font-bold text-center">Bike Sharing Dashboard</h1>
+            { role === "rider" && (
             <div className="flex justify-center items-center mt-10 space-x-4">
                 Choose a Plan =>
                 {plans.map((plan, index) => (
@@ -445,7 +446,7 @@ export default function Home() {
                         {plan}
                     </button>
                 ))}
-            </div>
+            </div>)}
 
             {/* User Info */}
             <div className="p-2 bg-blue-50 border rounded">
@@ -529,6 +530,7 @@ export default function Home() {
                             <Popup className={`popup-${getStationColor(getOccupancyPercent(station))}`}>
                                 <div style={{ maxHeight: "400px", overflowY: "auto", width: "300px" }}>
                                     <p><strong>Name : {station.name}</strong></p>
+                                    <p>Station Status: {station.operationalState}</p>
                                     <p>Address: {station.address}</p>
                                     <p>Bikes Available: {station.bikesAvailable}</p>
                                     <p>Free Docks: {station.freeDocks}</p>
@@ -671,7 +673,7 @@ export default function Home() {
                     <h3 className="text-lg font-semibold text-gray-800 mb-2">Pricing Plan</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 text-sm">
                         <div>
-                            <p><span className="font-medium">Plan Name:</span> {tripSummary.pricingPlan?.planName || "N/A"}</p>
+                            <p><span className="font-medium">Plan Name:</span> {tripSummary.pricingPlan?.planName|| "N/A"}</p>
                         </div>
                         <div>
                             <p><span className="font-medium">Rate per Minute:</span>
@@ -684,6 +686,13 @@ export default function Home() {
                             <p><span className="font-medium">Base Fee:</span>
                                 {tripSummary.pricingPlan?.baseFee
                                     ? `$${tripSummary.pricingPlan.baseFee}`
+                                    : "N/A"}
+                            </p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">E-Bike Surcharge Fee:</span>
+                                {tripSummary.pricingPlan?.planName === "Base plan"
+                                    ? "20$"
                                     : "N/A"}
                             </p>
                         </div>

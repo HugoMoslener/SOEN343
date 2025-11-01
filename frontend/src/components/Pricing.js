@@ -10,7 +10,7 @@ export default function Pricing() {
             price: "$10",
             period: "/ Minute",
             description: "Perfect for beginners",
-            features: ["Base Fee: 10$", "Additional E-Bike Fee: 20$"],
+            features: ["Base Fee: 10$", "Additional E-Bike Fee: 20$", "Best plan for starting out. Low base fee. Most of the pricing is based off the minutes of you ride."],
             gradient: "from-blue-500/20 to-cyan-500/20",
             borderGradient: "from-blue-500 to-cyan-500",
             buttonGradient: "from-blue-500 to-cyan-500",
@@ -21,7 +21,7 @@ export default function Pricing() {
             price: "$4",
             period: "/ Minute",
             description: "Best for professionals",
-            features: ["Base Fee: 30$", "No additional E-Bike Fee"],
+            features: ["Base Fee: 30$", "No additional E-Bike Fee","Most popular plan for regular users. Very low rate per minute and no e-bike surcharge"],
             gradient: "from-purple-500/20 to-pink-500/20",
             borderGradient: "from-purple-500 to-pink-500",
             buttonGradient: "from-purple-500 to-pink-500",
@@ -32,7 +32,7 @@ export default function Pricing() {
             price: "$2",
             period: "/ Minute",
             description: "For large scale groups",
-            features: ["Base Fee: 50$", "No additional E-Bike Fee"],
+            features: ["Base Fee: 50$", "No additional E-Bike Fee","This plan is for regular users who uses bikes very often. Very low rate per minute and no e-bike surcharge"],
             gradient: "from-orange-500/20 to-red-500/20",
             borderGradient: "from-orange-500 to-red-500",
             buttonGradient: "from-orange-500 to-red-500",
@@ -119,11 +119,6 @@ export default function Pricing() {
                                         ))}
                                     </ul>
 
-                                    <button
-                                        className={`w-full bg-gradient-to-r ${plan.buttonGradient} hover:opacity-90 text-white font-semibold py-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border-0`}
-                                    >
-                                        Get Started
-                                    </button>
                                 </div>
                             </div>
                         </div>

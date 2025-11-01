@@ -7,6 +7,8 @@ export default function Billing() {
     const [openIndex, setOpenIndex] = useState(null);
     const [tripSummary,setTripSummary] = useState(null);
     const [isTripSummary,setIsTripSummary] = useState(false);
+    const [paymentReceipt,setPaymentReceipt] = useState(null);
+    const [isReceipt,setIsReceipt] = useState(false);
     const [showPayment, setShowPayment] = useState(false);
     const navigate = useNavigate();
     const [paymentData, setPaymentData] = useState({
@@ -14,7 +16,12 @@ export default function Billing() {
         expiry: "",
         cvv: "",
         name: "",});
+    const today = new Date();
 
+    // Get year, month, and day
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1; // Months are 0-indexed
+    const day = today.getDate();
     const fetchStations = () => {
         fetch("/api/action/getAllTripsForUser", {
             method: "POST",
@@ -40,6 +47,7 @@ export default function Billing() {
             setIsTripSummary(true);
             setShowPayment(true);
             setTripSummary(JSON.parse(localStorage.getItem("TripSummary")));
+            setPaymentReceipt(JSON.parse(localStorage.getItem("TripSummary")));
 
         }
     }, []);
@@ -56,12 +64,8 @@ export default function Billing() {
             });
 
             const text =  res.text();
-            setShowPayment(false);
-            setIsTripSummary(false);
-            setTripSummary(null);
-            localStorage.setItem("IsTripSummary","false");
-            localStorage.setItem("IsTripSummary", "");
-            localStorage.setItem("TripSummary", "");
+
+
         } catch (error) {
             console.error("Payment request failed:", error);
         }
@@ -106,10 +110,20 @@ export default function Billing() {
         setIsTripSummary(false);
     };
 
-    const handlePaymentSubmit =  () => {
+    const handlePaymentSubmit =  async (e) => {
+        e.preventDefault();
         localStorage.setItem("IsTripSummary","false");
         localStorage.setItem("TripSummary", "");
         handlePayment();
+        setShowPayment(false);
+        setIsTripSummary(false);
+        setTripSummary(null);
+        localStorage.setItem("IsTripSummary","false");
+        localStorage.setItem("IsTripSummary", "");
+        localStorage.setItem("TripSummary", "");
+
+        alert("Payment successfully confirmed");
+        setIsReceipt(true);
 
     };
 
@@ -179,6 +193,13 @@ export default function Billing() {
                             <p><span className="font-medium">Base Fee:</span>
                                 {tripSummary.pricingPlan?.baseFee
                                     ? `$${tripSummary.pricingPlan.baseFee}`
+                                    : "N/A"}
+                            </p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">E-Bike Surcharge Fee:</span>
+                                {tripSummary.pricingPlan?.planName === "Base plan"
+                                    ? "20$"
                                     : "N/A"}
                             </p>
                         </div>
@@ -286,6 +307,100 @@ export default function Billing() {
                     </form>
                 </div>
             )}
+            {/* Payment Receipt */}
+            {isReceipt && ( <div className="mt-6 bg-white border border-gray-200 rounded-2xl shadow-md p-5 w-full max-w-4xl mx-auto">
+
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
+                    Payment Receipt
+                </h2>
+                {/* General Trip Info */}
+                <div className="border-t border-gray-200 pt-4 mt-4">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Base Information</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-gray-700 text-sm mb-6">
+
+                        <div>
+                            <p><span className="font-medium">Trip ID:</span> {paymentReceipt.tripID}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Start Time:</span> {paymentReceipt.startTime}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">End Time:</span> {paymentReceipt.endTime}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Origin:</span> {paymentReceipt.origin}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Arrival:</span> {paymentReceipt.arrival}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Bike ID:</span> {paymentReceipt.reservation?.bike?.bikeID}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Bike Type:</span> {paymentReceipt.reservation?.bike?.type}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Pricing Plan Section */}
+                <div className="border-t border-gray-200 pt-4 mt-4">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Pricing Plan</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 text-sm">
+                        <div>
+                            <p><span className="font-medium">Plan Name:</span> {paymentReceipt.pricingPlan?.planName || "N/A"}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Rate per Minute:</span>
+                                {paymentReceipt.pricingPlan?.ratePerMinute
+                                    ? `$${paymentReceipt.pricingPlan.ratePerMinute}`
+                                    : "N/A"}
+                            </p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Base Fee:</span>
+                                {paymentReceipt.pricingPlan?.baseFee
+                                    ? `$${paymentReceipt.pricingPlan.baseFee}`
+                                    : "N/A"}
+                            </p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">E-Bike Surcharge Fee:</span>
+                                {paymentReceipt.pricingPlan?.planName === "Base plan"
+                                    ? "20$"
+                                    : "N/A"}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Payment Section */}
+                <div className="border-t border-gray-200 pt-4 mt-4">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Payment Information</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 text-sm">
+                        <div>
+                            <p><span className="font-medium">Payment Method:</span> {paymentReceipt.payment?.paymentMethod || "N/A"}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Paid Date:</span> {year}-{month.toString().padStart(2, "0")}-{day.toString().padStart(2, "0")}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Total Amount:</span>
+                                {paymentReceipt.payment?.amount
+                                    ? `$${paymentReceipt.payment.amount.toFixed(2)}`
+                                    : "N/A"}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <br/>
+                <div className="flex justify-center">
+                    <button
+                        onClick={() => {setIsReceipt(false); setPaymentReceipt(null);}}
+                        className="bg-red-500 text-white hover:bg-red-600 rounded-lg px-4 py-2 transition font-medium">
+                        Close
+                    </button>
+                </div>
+            </div>)}
             <div className="flex justify-center mt-10">
                 <button
                     onClick={() => navigate("/ridehistory")}
