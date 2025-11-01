@@ -1,13 +1,14 @@
 
 
-import { useState,useEffect  } from "react"
+import { useState,useEffect  } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Billing() {
-    const [openIndex, setOpenIndex] = useState(null)
-    const [tripSummary,setTripSummary] = useState(true);
-    const [isTripSummary,setIsTripSummary] = useState(true);
-    const [showPayment, setShowPayment] = useState(true);
-    const [trips, setTrips] = useState(null);
+    const [openIndex, setOpenIndex] = useState(null);
+    const [tripSummary,setTripSummary] = useState(null);
+    const [isTripSummary,setIsTripSummary] = useState(false);
+    const [showPayment, setShowPayment] = useState(false);
+    const navigate = useNavigate();
     const [paymentData, setPaymentData] = useState({
         cardNumber: "",
         expiry: "",
@@ -28,14 +29,43 @@ export default function Billing() {
             })
             .then((data) => {
                 console.log("Received stations:", data);
-                setTrips(JSON.parse(data));
+
             })
             .catch((e) => console.error("Error fetching stations:", e));
     };
 
     useEffect(() => {
         fetchStations();
+        if(localStorage.getItem("IsTripSummary") === "true"){
+            setIsTripSummary(true);
+            setShowPayment(true);
+            setTripSummary(JSON.parse(localStorage.getItem("TripSummary")));
+
+        }
     }, []);
+
+    const handlePayment =  () => {
+
+        try {
+            const res =  fetch("/api/action/confirmPayment", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "text/plain", // send a plain string
+                },
+                body: String(tripSummary.tripID), // your string data
+            });
+
+            const text =  res.text();
+            setShowPayment(false);
+            setIsTripSummary(false);
+            setTripSummary(null);
+            localStorage.setItem("IsTripSummary","false");
+            localStorage.setItem("IsTripSummary", "");
+            localStorage.setItem("TripSummary", "");
+        } catch (error) {
+            console.error("Payment request failed:", error);
+        }
+    };
 
     const items = [
         {
@@ -76,10 +106,11 @@ export default function Billing() {
         setIsTripSummary(false);
     };
 
-    const handlePaymentSubmit = (e) => {
-        e.preventDefault();
-        alert("Payment submitted successfully!");
-        setShowPayment(false);
+    const handlePaymentSubmit =  () => {
+        localStorage.setItem("IsTripSummary","false");
+        localStorage.setItem("TripSummary", "");
+        handlePayment();
+
     };
 
     const handleInputChange = (e) => {
@@ -90,40 +121,98 @@ export default function Billing() {
 
         <div className="p-6">
             {/* --- TRIP SUMMARY SECTION --- */}
-            {isTripSummary && (
-                <div className="bg-white border border-gray-200 rounded-2xl shadow-md p-5 w-full max-w-4xl mx-auto">
-                    <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
-                        Trip Summary
-                    </h2>
+            {isTripSummary && ( <div className="mt-6 bg-white border border-gray-200 rounded-2xl shadow-md p-5 w-full max-w-4xl mx-auto">
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 text-sm mb-6">
-                        <p>
-                            <span className="font-medium">Trip ID:</span> T1023
-                        </p>
-                        <p>
-                            <span className="font-medium">Origin:</span> Station A
-                        </p>
-                        <p>
-                            <span className="font-medium">Arrival:</span> Station B
-                        </p>
-                        <p>
-                            <span className="font-medium">Plan:</span> Premium
-                        </p>
-                        <p>
-                            <span className="font-medium">Payment:</span> Credit Card
-                        </p>
-                    </div>
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
+                    Trip Summary
+                </h2>
+                {/* General Trip Info */}
+                <div className="border-t border-gray-200 pt-4 mt-4">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Base Information</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-gray-700 text-sm mb-6">
 
-                    <div className="flex justify-center">
-                        <button
-                            onClick={handleCloseTripSummary}
-                            className="bg-red-500 text-white hover:bg-red-600 rounded-lg px-4 py-2 transition font-medium"
-                        >
-                            Close
-                        </button>
+                        <div>
+                            <p><span className="font-medium">Trip ID:</span> {tripSummary.tripID}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Start Time:</span> {tripSummary.startTime}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">End Time:</span> {tripSummary.endTime}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Origin:</span> {tripSummary.origin}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Arrival:</span> {tripSummary.arrival}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Bike ID:</span> {tripSummary.reservation?.bike?.bikeID}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Bike Type:</span> {tripSummary.reservation?.bike?.type}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Reservation Date:</span> {tripSummary.reservation?.date}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Reservation State:</span> {tripSummary.reservation?.state}</p>
+                        </div>
                     </div>
                 </div>
-            )}
+
+                {/* Pricing Plan Section */}
+                <div className="border-t border-gray-200 pt-4 mt-4">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Pricing Plan</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 text-sm">
+                        <div>
+                            <p><span className="font-medium">Plan Name:</span> {tripSummary.pricingPlan?.planName || "N/A"}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Rate per Minute:</span>
+                                {tripSummary.pricingPlan?.ratePerMinute
+                                    ? `$${tripSummary.pricingPlan.ratePerMinute}`
+                                    : "N/A"}
+                            </p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Base Fee:</span>
+                                {tripSummary.pricingPlan?.baseFee
+                                    ? `$${tripSummary.pricingPlan.baseFee}`
+                                    : "N/A"}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Payment Section */}
+                <div className="border-t border-gray-200 pt-4 mt-4">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Payment Information</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 text-sm">
+                        <div>
+                            <p><span className="font-medium">Payment Method:</span> {tripSummary.payment?.paymentMethod || "N/A"}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Paid Date:</span> {tripSummary.payment?.paidDate || "N/A"}</p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Total Amount:</span>
+                                {tripSummary.payment?.amount
+                                    ? `$${tripSummary.payment.amount.toFixed(2)}`
+                                    : "N/A"}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <br/>
+                <div className="flex justify-center">
+                    <button
+                        onClick={() => {setIsTripSummary(false); localStorage.setItem("IsTripSummary","false"); }}
+                        className="bg-red-500 text-white hover:bg-red-600 rounded-lg px-4 py-2 transition font-medium">
+                        Close
+                    </button>
+                </div>
+            </div>)}
 
             {/* --- PAYMENT SECTION --- */}
             {showPayment && (
@@ -189,6 +278,7 @@ export default function Billing() {
                         </div>
                         <button
                             type="submit"
+
                             className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition"
                         >
                             Confirm Payment
@@ -196,6 +286,14 @@ export default function Billing() {
                     </form>
                 </div>
             )}
+            <div className="flex justify-center mt-10">
+                <button
+                    onClick={() => navigate("/ridehistory")}
+                    className="flex flex-col items-center justify-center w-64 h-32 bg-gradient-to-b from-blue-500 to-blue-700 text-white rounded-xl shadow-lg hover:scale-105 transform transition duration-300"
+                >
+                    <span className="text-lg font-bold">Go to Ride History</span>
+                </button>
+            </div>
         </div>
     );
 }

@@ -68,7 +68,7 @@ public class ActionController {
         try{
             System.out.println("Post request reached here" + dockingHelperClass.getDockID() +":"+dockingHelperClass.getReservationID()+":"+dockingHelperClass.getRiderID());
             MapService.getInstance().setStations(stationService.getAllStations());
-            return BMS.getInstance().dockBike(dockingHelperClass.getRiderID(),dockingHelperClass.getReservationID(),dockingHelperClass.getDockID());
+            return BMS.getInstance().dockBike(dockingHelperClass.getRiderID(),dockingHelperClass.getReservationID(),dockingHelperClass.getDockID(),dockingHelperClass.getPlanID() );
 
         }
         catch (Exception e) {
@@ -175,6 +175,19 @@ public class ActionController {
         }
         catch (Exception e) {
             return null;
+        }
+
+    }
+
+    @PostMapping("/confirmPayment")
+    public String confirmPayment(@RequestBody String tripID ){
+        try{
+            System.out.println("Post request reached here : " + tripID );
+            String message = BMS.getInstance().paymentInterface(tripID);
+            return message;
+        }
+        catch (Exception e) {
+            return "false";
         }
 
     }

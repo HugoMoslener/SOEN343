@@ -9,6 +9,7 @@ import { authService } from '../services/authService'; // Adjust path as needed
 import redIconUrl from "leaflet-color-markers/img/marker-icon-red.png";
 import yellowIconUrl from "leaflet-color-markers/img/marker-icon-yellow.png";
 import greenIconUrl from "leaflet-color-markers/img/marker-icon-green.png";
+import { useNavigate } from "react-router-dom";
 
 function getMarkerIcon(fullness) {
     let iconUrl;
@@ -59,6 +60,9 @@ export default function Home() {
     const [tripSummary,setTripSummary] = useState(null);
     const [istripSummary,setIsTripSummary] = useState(false);
     const [selectedStation, setSelectedStation] = useState(null);
+    const [selectedPlan, setSelectedPlan] = useState("Base");
+    const plans = ["Base", "Premium", "Premium Pro"];
+    const navigate = useNavigate();
 
     const fetchUserDetails = async (firebaseUser) => {
         try {
@@ -200,17 +204,28 @@ export default function Home() {
     };
 
     const handleReturn = (dockID, stationName) => {
-        alert(dockID);
-        alert(stationName);
+
         if (!reservedBike || !reservedBike.checkedOut) {
             logMessage("No bike currently checked out to return.");
             return;
+        }
+
+        let planID = "1";
+        if(selectedPlan === "Base"){
+            planID = "1";
+        }
+        else if(selectedPlan === "Premium"){
+            planID = "2";
+        }
+        else if(selectedPlan === "Premium Pro"){
+            planID = "3";
         }
 
         const dockingData = {
             riderID: userId,
             reservationID: reservedBike.reservationID,
             dockID: dockID,
+            planID: planID,
         };
 
         logMessage(`Attempting to return bike ${reservedBike.bikeID} to dock ${dockID} at ${stationName}...`);
@@ -418,6 +433,19 @@ export default function Home() {
     return (
         <div className="flex flex-col gap-4 p-4">
             <h1 className="text-2xl font-bold text-center">Bike Sharing Dashboard</h1>
+            <div className="flex justify-center items-center mt-10 space-x-4">
+                Choose a Plan =>
+                {plans.map((plan, index) => (
+                    <button
+                        key={index}
+                        onClick={() => setSelectedPlan(plan)}
+                        className={`px-6 py-3 rounded-lg border font-medium transition
+            ${selectedPlan === plan ? "bg-blue-500 text-white border-blue-500" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"}`}
+                    >
+                        {plan}
+                    </button>
+                ))}
+            </div>
 
             {/* User Info */}
             <div className="p-2 bg-blue-50 border rounded">
@@ -675,7 +703,7 @@ export default function Home() {
                         <div>
                             <p><span className="font-medium">Total Amount:</span>
                                 {tripSummary.payment?.amount
-                                    ? `$${tripSummary.payment.amount}`
+                                    ? `$${tripSummary.payment.amount.toFixed(2)}`
                                     : "N/A"}
                             </p>
                         </div>
@@ -684,9 +712,9 @@ export default function Home() {
                 <br/>
                     <div className="flex justify-center">
                 <button
-                    onClick={() => setIsTripSummary(false)}
+                    onClick={() => {setIsTripSummary(false); navigate("/billing"); localStorage.setItem("IsTripSummary","true");  localStorage.setItem("TripSummary",JSON.stringify(tripSummary)); }}
                     className="bg-red-500 text-white hover:bg-red-600 rounded-lg px-4 py-2 transition font-medium">
-                    Close
+                    Pay for the Trip
                 </button>
                     </div>
             </div>)}

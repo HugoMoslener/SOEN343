@@ -45,8 +45,10 @@ const Login = ({ onLogin }) => {
     if (result.success) {
       await fetchUser();
       onLogin(result.user);
-
       navigate('/');
+        setTimeout(() => {
+            window.location.reload();
+        }, 100);
 
     } else {
       setError(result.error);

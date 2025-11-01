@@ -8,9 +8,9 @@ export default function Pricing() {
         {
             name: "Base Plan",
             price: "$10",
-            period: "/month",
+            period: "/ Minute",
             description: "Perfect for beginners",
-            features: ["5 Projects", "10GB Storage", "Basic Support", "Community Access", "Monthly Updates"],
+            features: ["Base Fee: 10$", "Additional E-Bike Fee: 20$"],
             gradient: "from-blue-500/20 to-cyan-500/20",
             borderGradient: "from-blue-500 to-cyan-500",
             buttonGradient: "from-blue-500 to-cyan-500",
@@ -18,17 +18,10 @@ export default function Pricing() {
         },
         {
             name: "Premium plan",
-            price: "$25",
-            period: "/month",
+            price: "$4",
+            period: "/ Minute",
             description: "Best for professionals",
-            features: [
-                "Unlimited Projects",
-                "100GB Storage",
-                "Priority Support",
-                "Advanced Analytics",
-                "Weekly Updates",
-                "Custom Integrations",
-            ],
+            features: ["Base Fee: 30$", "No additional E-Bike Fee"],
             gradient: "from-purple-500/20 to-pink-500/20",
             borderGradient: "from-purple-500 to-pink-500",
             buttonGradient: "from-purple-500 to-pink-500",
@@ -36,19 +29,10 @@ export default function Pricing() {
         },
         {
             name: "Premium plan Pro",
-            price: "$50",
-            period: "/month",
-            description: "For large scale entreprises",
-            features: [
-                "Unlimited Everything",
-                "1TB Storage",
-                "24/7 Dedicated Support",
-                "Advanced Analytics",
-                "Daily Updates",
-                "Custom Integrations",
-                "API Access",
-                "White Label Options",
-            ],
+            price: "$2",
+            period: "/ Minute",
+            description: "For large scale groups",
+            features: ["Base Fee: 50$", "No additional E-Bike Fee"],
             gradient: "from-orange-500/20 to-red-500/20",
             borderGradient: "from-orange-500 to-red-500",
             buttonGradient: "from-orange-500 to-red-500",
@@ -148,7 +132,7 @@ export default function Pricing() {
 
                 {/* Footer Note */}
                 <div className="text-center mt-16">
-                    <p className="text-slate-600">Payment Information required for all plans.Only credit card payment is accepted.</p>
+                    <p className="text-slate-600">Payment Information required for all plans. Only credit card payment is accepted.</p>
                 </div>
             </div>
         </div>

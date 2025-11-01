@@ -8,13 +8,17 @@ public class PricingPlan {
 
     public PricingPlan() {}
     public PricingPlan(String planID) {
-        if(planID.equals("1")){
+
+    }
+
+    public void setPlanInfo(String  plansID) {
+        if(plansID.equals("1")){
             setPrincingPlan1();
         }
-        else if ( planID.equals("2")){
+        else if ( plansID.equals("2")){
             setPrincingPlan2();
         }
-        else if ( planID.equals("3")){
+        else if ( plansID.equals("3")){
             setPrincingPlan3();
         }
     }
