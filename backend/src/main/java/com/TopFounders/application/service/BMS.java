@@ -317,6 +317,40 @@ public class BMS implements Subscriber {
         return "Successful";
     }
 
+    public String resetInitialSystemState() throws ExecutionException, InterruptedException {
+        System.out.println("some");
+        ArrayList<Dock> dockArrayList = dockService.getAllDocks();
+        System.out.println(dockArrayList);
+        System.out.println("reachedbike");
+        ArrayList<Bike> bikeArrayList = bikeService.getAllBikes();
+        System.out.println(bikeArrayList);
+         System.out.println("hello");
+        for(Dock dock : dockArrayList){
+            dock.setState(DockState.EMPTY);
+            dock.setBike(null);
+            Station station1 =  stationService.getStationDetails(dock.getStationID());
+            station1.updateADock(dock);
+            stationService.updateStationDetails(station1);
+        }
+
+        for(Bike bike : bikeArrayList){
+            bike.setState(new Available());
+            bike.setDockID(bike.getBikeID());
+            bike.setStateString("AVAILABLE");
+            Dock dock = dockService.getDockDetails(bike.getDockID());
+            Station station = stationService.getStationDetails(dock.getStationID());
+            station.setOperationalState(StationOperationalState.ACTIVE);
+            station.getOccupancyStatus();
+            dock.setBike(bike);
+            dock.setState(DockState.OCCUPIED);
+            station.updateADock(dock);
+            stationService.updateStationDetails(station);
+            dockService.updateDockDetails(dock);
+            bikeService.updateBikeDetails(bike);
+        }
+        return "Successful";
+    }
+
     public ArrayList<Trip> getAllTripsForRiderOrOperator(String username) throws ExecutionException, InterruptedException {
         User user = userService.getUserDetails(username);
         ArrayList<Trip> trips = tripService.getAllTrip();

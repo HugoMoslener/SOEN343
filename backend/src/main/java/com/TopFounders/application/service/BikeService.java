@@ -1,14 +1,14 @@
 package com.TopFounders.application.service;
 import com.TopFounders.domain.model.Bike;
 import com.TopFounders.domain.model.Operator;
+import com.TopFounders.domain.model.Station;
 import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.WriteResult;
+import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -51,6 +51,22 @@ public class BikeService {
         }else {
             return null;
         }
+    }
+    public ArrayList<Bike> getAllBikes() throws InterruptedException, ExecutionException {
+        Firestore db = FirestoreClient.getFirestore();
+
+        ApiFuture<QuerySnapshot> future = db.collection(Collection).get();
+        List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
+        ArrayList<Bike> bikeList = new ArrayList<>();
+        for (QueryDocumentSnapshot doc : documents) {
+            Bike bike = doc.toObject(Bike.class);
+            bike.markAsLoadingFromFirestore(false);
+            System.out.println(bike.getBikeID());
+            bikeList.add(bike);
+        }
+
+        return bikeList;
     }
 
     public String updateBikeDetails(Bike bike) throws InterruptedException, ExecutionException {

@@ -3,10 +3,7 @@ package com.TopFounders.ui.controller;
 import com.TopFounders.application.service.*;
 import com.TopFounders.domain.model.*;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.ArrayList;
@@ -184,6 +181,20 @@ public class ActionController {
         try{
             System.out.println("Post request reached here : " + tripID );
             String message = BMS.getInstance().paymentInterface(tripID);
+            return message;
+        }
+        catch (Exception e) {
+            return "false";
+        }
+
+    }
+
+    @GetMapping("/resetInitialSystemState")
+    public String resetState(){
+        try{
+            System.out.println("Post request reached here");
+            String message = BMS.getInstance().resetInitialSystemState();
+
             return message;
         }
         catch (Exception e) {

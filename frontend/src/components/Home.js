@@ -90,27 +90,36 @@ export default function Home() {
             logMessage(`Error: ${error.message}`);
         }
     };
-    useEffect(() => {
-        if (!reservationExpiry) return;
+    useEffect( () => {
+        //alert("expired");
+        if (reservationExpiry === null) return; // skip if null or empty
 
-        // Set up interval to check every second
         const interval = setInterval(() => {
             const now = new Date();
-            const expiry = new Date(reservationExpiry); // ensure it's a Date object
 
-            if (now >= expiry) {
-                handleCancelReservation();
+            // Extract current local time in HH:mm:ss format
+            const nowTime = now.toLocaleTimeString("en-GB", { hour12: false });
+            // alert("expired");
+            // Parse both times into comparable values (in milliseconds since midnight)
+            const [nowHours, nowMinutes, nowSeconds] = nowTime.split(":").map(Number);
+            const [expHours, expMinutes, expSeconds] = reservationExpiry.replace(/ AM| PM/, "").split(":").map(Number);
+
+            const nowMs = nowHours * 3600000 + nowMinutes * 60000 + nowSeconds * 1000;
+            const expiryMs = expHours * 3600000 + expMinutes * 60000 + expSeconds * 1000;
+            //logMessage(nowMs);
+            //logMessage(expiryMs);
+            // Compare: if current time has passed the expiry time
+            if (nowMs >= expiryMs) {
                 setIsReserved(false);
-                setReservedBike(null);
+                setReservedBike("");
                 setReservationID("");
                 logMessage(`✅ Reservation cancelled successfully.`);
                 setCount(c => c + 1);
                 fetchStations();
                 clearInterval(interval); // stop checking after expiry
             }
-        }, 1000); // 1000ms = 1 second
+        }, 1000); // run every second
 
-        // Clean up interval when component unmounts or expiry changes
         return () => clearInterval(interval);
     }, [reservationExpiry]);
 
@@ -136,6 +145,21 @@ export default function Home() {
             .then((r) => r.json())
             .then(setStations)
             .catch((e) => console.error("Error fetching stations:", e));
+    };
+    const resetSystemState = async  () => {
+        console.log("Reset button clicked"); // check if this prints
+
+        try {
+            const response = await fetch("/api/action/resetInitialSystemState");
+            if (!response.ok) throw new Error("Network response not ok");
+            const message = await response.text();
+            console.log("Reset response:", message);
+            logMessage("Reset successfully done");
+
+            window.location.reload();
+        } catch (error) {
+            console.error("Error resetting system state:", error);
+        }
     };
 
     const logMessage = (msg) => setConsoleMessages((prev) => [msg, ...prev]);
@@ -488,6 +512,15 @@ export default function Home() {
                                 <p>Capacity: {selectedStation.docks.length}</p>
                             </>
                         )}
+                        {role === "operator" && ( <button
+                            onClick={() => {
+                                console.log("Reset button clicked");
+                                resetSystemState();
+                            }}
+                            className="bg-red-500 text-white hover:bg-red-600 rounded-lg px-4 py-2 m-2 transition font-medium"
+                        >
+                            Reset System State
+                        </button>)}
                     </>
                 ) : (
                     <p>Please log in to use the system</p>
