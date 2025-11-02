@@ -90,6 +90,30 @@ export default function Home() {
             logMessage(`Error: ${error.message}`);
         }
     };
+    useEffect(() => {
+        if (!reservationExpiry) return;
+
+        // Set up interval to check every second
+        const interval = setInterval(() => {
+            const now = new Date();
+            const expiry = new Date(reservationExpiry); // ensure it's a Date object
+
+            if (now >= expiry) {
+                handleCancelReservation();
+                setIsReserved(false);
+                setReservedBike(null);
+                setReservationID("");
+                logMessage(`✅ Reservation cancelled successfully.`);
+                setCount(c => c + 1);
+                fetchStations();
+                clearInterval(interval); // stop checking after expiry
+            }
+        }, 1000); // 1000ms = 1 second
+
+        // Clean up interval when component unmounts or expiry changes
+        return () => clearInterval(interval);
+    }, [reservationExpiry]);
+
 
     useEffect(() => {
         const unsubscribe = authService.onAuthStateChanged(async (firebaseUser) => {
@@ -469,7 +493,7 @@ export default function Home() {
                     <p>Please log in to use the system</p>
                 )}
                 {reservedBike && (
-                    <p><strong>Active Reservation:</strong> Bike {reservedBike.bikeID} at {reservedBike.name}</p>
+                    <p><strong>Active Reservation:</strong> Bike {reservedBike.bikeID} </p>
                 )}
                 {movingBike && (
                     <p><strong>Moving Bike:</strong> Bike {movingBike.bikeID} from Dock {movingBike.dockID}</p>
