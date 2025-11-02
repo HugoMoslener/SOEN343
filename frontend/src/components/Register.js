@@ -58,6 +58,7 @@ const Register = ({ onRegister }) => {
              setPassword('');
              setEmail('');
              setPaymentInformation('');
+             alert("Account created successfully.");
              navigate('/login');
     } else {
       setError(result.error);
