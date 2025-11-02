@@ -248,6 +248,7 @@ public class BMS implements Subscriber {
     }
 
     public String setABikeAsMaintenance(Bike bike) throws ExecutionException, InterruptedException, IllegalStateException {
+        bike.setBikeStateByString(bike.getStateString());
         bike.maintenance(); // sets bike to maintenance
         bikeService.updateBikeDetails(bike);
         return "Successful";
