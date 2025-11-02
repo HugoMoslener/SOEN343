@@ -1,6 +1,6 @@
 package com.TopFounders.application.service;
 
-import com.TopFounders.domain.factory.UserFactory;
+import com.TopFounders.domain.factory.RiderCreator;
 import com.TopFounders.domain.model.*;
 import com.TopFounders.domain.observer.Subscriber;
 import com.TopFounders.domain.state.*;
@@ -35,8 +35,8 @@ public class BMS implements Subscriber {
     }
 
     public String saveRiderData(String username, String paymentInformation, String email, String fullName, String address, String role) throws ExecutionException, InterruptedException {
-        UserFactory factory = new UserFactory();
-        String message = riderService.saveRider((Rider)factory.CreateUser(username,paymentInformation,email,fullName,address, "rider"));
+        RiderCreator factory = new RiderCreator();
+        String message = riderService.saveRider(factory.createUser(username,paymentInformation,email,fullName,address, "rider"));
 
         return message;
     }

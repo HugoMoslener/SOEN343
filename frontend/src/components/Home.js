@@ -482,6 +482,28 @@ export default function Home() {
                     <div key={idx}>• {msg}</div>
                 ))}
             </div>
+            <div className="flex space-x-6 items-center">
+                {/* Category A */}
+                <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 rounded-full bg-red-500"></div>
+                    <span className="text-gray-700 text-sm">Empty/Full stations </span>
+                </div>
+
+                {/* Category B */}
+                <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 rounded-full bg-yellow-500"></div>
+                    <span className="text-gray-700 text-sm">Almost full (higher than 85%) or less than 25% </span>
+                </div>
+
+                {/* Category C */}
+                <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 rounded-full bg-green-500"></div>
+                    <span className="text-gray-700 text-sm">Balanced</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                    <span className="text-gray-700 text-sm">E-Bikes are marked on the dock name as (E) </span>
+                </div>
+            </div>
 
             {/* Action Buttons */}
             <div className="flex gap-2">
@@ -554,7 +576,7 @@ export default function Home() {
                                             <div
                                                 key={dock.dockID}
                                                 className={`p-2 border rounded ${
-                                                    dock.state === "OCCUPIED" ? "bg-green-200 text-black" : "bg-gray-100 text-black"
+                                                    dock.state === "OCCUPIED" ? "bg-black text-white" : "bg-gray-100 text-black"
                                                 }`}
                                             >
                                                 <p><strong>Dock {dock.dockID} {dock?.bike?.type === "E_BIKE" && <span>( E )</span>}</strong></p>
