@@ -22,7 +22,7 @@ public class Rider extends User{
         this.paymentInformation= paymentInformation;
     }
 
-    public String reserveBike(String stationName, Rider rider, String BikeID, String username) throws ExecutionException, InterruptedException {
+    public String reserveBike(String stationName, Rider rider, String BikeID, String username) throws ExecutionException, InterruptedException, IllegalStateException {
 
         return Dashboard.getInstance().reserveBike(stationName,rider, BikeID, username);
     }
@@ -33,7 +33,7 @@ public class Rider extends User{
         return message;
     }
 
-    public String undockBike(String username, String reservationID) throws ExecutionException, InterruptedException {
+    public String undockBike(String username, String reservationID) throws ExecutionException, InterruptedException, IllegalStateException {
         String message = Dashboard.getInstance().undockBike(username, reservationID);
         return message;
     }

@@ -2,9 +2,9 @@ import logo from './logo.svg';
 import './App.css';
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { useState, useEffect } from 'react';
-import Login from './components/Login';
-import Register from './components/Register';
-import Home1 from './components/Home';
+import Login from './ui/login/Login';
+import Register from './ui/login/Register';
+import Home1 from './ui/dashboard/Home';
 import { authService } from './services/authService';
 
 function Home({ user, onLogout }) {

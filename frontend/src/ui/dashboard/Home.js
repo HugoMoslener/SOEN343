@@ -5,7 +5,7 @@ import "leaflet/dist/leaflet.css";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
-import { authService } from '../services/authService'; // Adjust path as needed
+import { authService } from '../../services/authService'; // Adjust path as needed
 
 // Fix Leaflet marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -102,27 +102,27 @@ export default function Home() {
             },
             body: JSON.stringify(reservationData),
         })
-        .then((r) => r.text())
-        .then((result) => {
-            if (result && result !== "false") {
-                setIsReserved(true);
-                setReservationID(result);
-                setReservedBike({
-                    bikeID: bikeID,
-                    stationName: stationName,
-                    reservationID: result,
-                    checkedOut: false
-                });
-                logMessage(`Reserved bike ${bikeID}! ID: ${result}`);
-                setCount(c => c + 1);
-                fetchStations();
-            } else {
-                logMessage(`❌ Reservation failed for bike ${bikeID}.`);
-            }
-        })
-        .catch((e) => {
-            logMessage(`❌ Network error during reservation: ${e.message}`);
-        });
+            .then((r) => r.text())
+            .then((result) => {
+                if (result && result !== "false") {
+                    setIsReserved(true);
+                    setReservationID(result);
+                    setReservedBike({
+                        bikeID: bikeID,
+                        stationName: stationName,
+                        reservationID: result,
+                        checkedOut: false
+                    });
+                    logMessage(`Reserved bike ${bikeID}! ID: ${result}`);
+                    setCount(c => c + 1);
+                    fetchStations();
+                } else {
+                    logMessage(`❌ Reservation failed for bike ${bikeID}.`);
+                }
+            })
+            .catch((e) => {
+                logMessage(`❌ Network error during reservation: ${e.message}`);
+            });
     };
 
     const handleCheckout = () => {
@@ -145,20 +145,20 @@ export default function Home() {
             },
             body: JSON.stringify(undockingData),
         })
-        .then((r) => r.text())
-        .then((message) => {
-            if (message && message !== "false") {
-                setIsReserved(false);
-                setIsUndocked(true);
-                setReservedBike((prev) => ({ ...prev, checkedOut: true }));
-                logMessage(`Checked out bike ${reservedBike.bikeID}.`);
-                setCount(c => c + 1);
-                fetchStations();
-            } else {
-                logMessage("Checkout failed. Bike may no longer be available.");
-            }
-        })
-        .catch((e) => logMessage(`❌ Network error during checkout: ${e.message}`));
+            .then((r) => r.text())
+            .then((message) => {
+                if (message && message !== "false") {
+                    setIsReserved(false);
+                    setIsUndocked(true);
+                    setReservedBike((prev) => ({ ...prev, checkedOut: true }));
+                    logMessage(`Checked out bike ${reservedBike.bikeID}.`);
+                    setCount(c => c + 1);
+                    fetchStations();
+                } else {
+                    logMessage("Checkout failed. Bike may no longer be available.");
+                }
+            })
+            .catch((e) => logMessage(`❌ Network error during checkout: ${e.message}`));
     };
 
     const handleReturn = (dockID, stationName) => {
@@ -182,21 +182,21 @@ export default function Home() {
             },
             body: JSON.stringify(dockingData),
         })
-        .then((r) => r.text())
-        .then((message) => {
-            if (message && message !== "false") {
-                setIsUndocked(false);
-                setIsReserved(false);
-                setReservedBike(null);
-                setReservationID("");
-                logMessage(`✅ Trip complete! Bike returned to dock ${dockID}. Trip Summary: ${message}`);
-                setCount(c => c + 1);
-                fetchStations();
-            } else {
-                logMessage("❌ Return failed. Check if dock is free or station is active.");
-            }
-        })
-        .catch((e) => logMessage(`❌ Network error during return: ${e.message}`));
+            .then((r) => r.text())
+            .then((message) => {
+                if (message && message !== "false") {
+                    setIsUndocked(false);
+                    setIsReserved(false);
+                    setReservedBike(null);
+                    setReservationID("");
+                    logMessage(`✅ Trip complete! Bike returned to dock ${dockID}. Trip Summary: ${message}`);
+                    setCount(c => c + 1);
+                    fetchStations();
+                } else {
+                    logMessage("❌ Return failed. Check if dock is free or station is active.");
+                }
+            })
+            .catch((e) => logMessage(`❌ Network error during return: ${e.message}`));
     };
 
     const handleCancelReservation = () => {
@@ -219,20 +219,20 @@ export default function Home() {
             },
             body: JSON.stringify(cancelData),
         })
-        .then((r) => r.text())
-        .then((message) => {
-            if (message && message !== "false" && !message.includes("Error")) {
-                setIsReserved(false);
-                setReservedBike(null);
-                setReservationID("");
-                logMessage(`✅ Reservation cancelled successfully.`);
-                setCount(c => c + 1);
-                fetchStations();
-            } else {
-                logMessage(`❌ Reservation cancellation failed. ${message}`);
-            }
-        })
-        .catch((e) => logMessage(`❌ Network error during cancellation: ${e.message}`));
+            .then((r) => r.text())
+            .then((message) => {
+                if (message && message !== "false" && !message.includes("Error")) {
+                    setIsReserved(false);
+                    setReservedBike(null);
+                    setReservationID("");
+                    logMessage(`✅ Reservation cancelled successfully.`);
+                    setCount(c => c + 1);
+                    fetchStations();
+                } else {
+                    logMessage(`❌ Reservation cancellation failed. ${message}`);
+                }
+            })
+            .catch((e) => logMessage(`❌ Network error during cancellation: ${e.message}`));
     };
 
     // Operator actions
@@ -281,19 +281,19 @@ export default function Home() {
             },
             body: JSON.stringify(moveData),
         })
-        .then(r => r.text())
-        .then(message => {
-            if (message && message !== "false" && !message.includes("Error")) {
-                logMessage(`✅ Move successful! ${message}`);
-                setMovingBike(null);
-                setCount(c => c + 1);
-                setIsMoving(true);
-                fetchStations();
-            } else {
-                logMessage(`❌ Move failed. ${message}`);
-            }
-        })
-        .catch(e => logMessage(`❌ Network error during move: ${e.message}`));
+            .then(r => r.text())
+            .then(message => {
+                if (message && message !== "false" && !message.includes("Error")) {
+                    logMessage(`✅ Move successful! ${message}`);
+                    setMovingBike(null);
+                    setCount(c => c + 1);
+                    setIsMoving(true);
+                    fetchStations();
+                } else {
+                    logMessage(`❌ Move failed. ${message}`);
+                }
+            })
+            .catch(e => logMessage(`❌ Network error during move: ${e.message}`));
     };
 
     const handleToggleStationService = (stationID, currentState) => {
@@ -313,17 +313,17 @@ export default function Home() {
             },
             body: stationID,
         })
-        .then(r => r.text())
-        .then(message => {
-            if (message && message !== "false" && !message.includes("Error")) {
-                logMessage(`✅ Station ${stationID} status updated: ${message}`);
-                setCount(c => c + 1);
-                fetchStations();
-            } else {
-                logMessage(`❌ Station status update failed. ${message}`);
-            }
-        })
-        .catch(e => logMessage(`❌ Network error: ${e.message}`));
+            .then(r => r.text())
+            .then(message => {
+                if (message && message !== "false" && !message.includes("Error")) {
+                    logMessage(`✅ Station ${stationID} status updated: ${message}`);
+                    setCount(c => c + 1);
+                    fetchStations();
+                } else {
+                    logMessage(`❌ Station status update failed. ${message}`);
+                }
+            })
+            .catch(e => logMessage(`❌ Network error: ${e.message}`));
     }
 
     return (
