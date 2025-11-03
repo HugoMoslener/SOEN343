@@ -374,7 +374,6 @@ export default function Home() {
 
         if (fromStation === targetStation.stationID) {
             logMessage("Cannot move bike to same station!");
-            setMovingBike(null);
             return;
         }
 
@@ -584,7 +583,7 @@ export default function Home() {
                         Checkout Bike
                     </button>
                 )}
-                {movingBike && (
+                {/*movingBike && (
                     <button
                         onClick={() => {setMovingBike(null);
                             setIsMoving(true);
@@ -593,7 +592,7 @@ export default function Home() {
                     >
                         Cancel Move
                     </button>
-                )}
+                )*/}
             </div>
 
             {/* Map */}
@@ -686,7 +685,7 @@ export default function Home() {
                                                                 Return
                                                             </button>
                                                         )}
-                                                        {role === "operator" && movingBike && dock.state === "EMPTY" && startingDock !== dock.dockID && (
+                                                        {role === "operator" && movingBike && dock.state === "EMPTY" && startingDock !== dock.dockID && movingBike.fromStation !== station.stationID &&(
                                                             <button
                                                                 onClick={() => {handleMoveComplete(station, dock.dockID);
                                                                 setSelectedStation(null);}}
