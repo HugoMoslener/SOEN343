@@ -19,7 +19,7 @@ public class UserService {
     public User getUserDetails(String username) throws InterruptedException, ExecutionException {
         try {
             System.out.println("🔍 Looking up user: " + username);
-
+            System.out.println(username);
             Firestore db = FirestoreClient.getFirestore();
             DocumentReference docRef = db.collection(USER_COLLECTION).document(username);
             DocumentSnapshot document = docRef.get().get();

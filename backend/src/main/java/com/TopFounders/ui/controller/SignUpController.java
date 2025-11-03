@@ -1,10 +1,10 @@
 package com.TopFounders.ui.controller;
 
 import com.TopFounders.application.service.BMS;
+import com.TopFounders.domain.factory.OperatorCreator;
 import com.TopFounders.domain.model.Operator;
 import com.TopFounders.domain.model.Rider;
 import com.TopFounders.domain.model.User;
-import com.TopFounders.domain.factory.UserFactory;
 import com.TopFounders.application.service.OperatorService;
 import com.TopFounders.application.service.RiderService;
 import com.TopFounders.application.service.UserService;
@@ -47,8 +47,8 @@ public class SignUpController {
     public String saveDataOperator(@RequestBody OperatorHelperClass operator ){
         try{
             System.out.println("Post request reached here");
-            UserFactory factory = new UserFactory();
-            String message = operatorService.saveOperator((Operator)factory.CreateUser(operator.getUsername(),"",operator.getEmail(),operator.getFullName(),operator.getAddress(), "operator"));
+            OperatorCreator factory = new OperatorCreator();
+            String message = operatorService.saveOperator(factory.createUser(operator.getUsername(),"",operator.getEmail(),operator.getFullName(),operator.getAddress(), "operator"));
             return "true";
         }
         catch (Exception e) {
@@ -82,8 +82,8 @@ public class SignUpController {
         FirebaseAuth.getInstance().setCustomUserClaims(userRecord.getUid(), claims);
 
         // 3. Create in Firestore
-        UserFactory factory = new UserFactory();
-        operatorService.saveOperator((Operator)factory.CreateUser(
+        OperatorCreator factory = new OperatorCreator();
+        operatorService.saveOperator((Operator)factory.createUser(
                 username, "", email, fullName, address, "operator"
         ));
     }

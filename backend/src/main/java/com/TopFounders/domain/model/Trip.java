@@ -38,6 +38,7 @@ public class Trip implements Publisher {
     public String getEndTime() {return endTime;}
     public void setEndTime(String endTime) {this.endTime = endTime;}
     public Double getRatePerMinute() {return ratePerMinute;}
+    public void setRatePerMinute(Double ratePerMinute) {this.ratePerMinute = ratePerMinute;}
     public String getArrival() {return arrival;}
     public void setArrival(String arrival) {this.arrival = arrival;}
     public String getOrigin() {return origin;}

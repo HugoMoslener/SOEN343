@@ -1,14 +1,14 @@
 package com.TopFounders.application.service;
+import com.TopFounders.domain.model.Bike;
 import com.TopFounders.domain.model.Dock;
 import com.TopFounders.domain.model.Operator;
 import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.WriteResult;
+import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -51,6 +51,23 @@ public class DockService {
         }else {
             return null;
         }
+    }
+
+
+    public ArrayList<Dock> getAllDocks() throws InterruptedException, ExecutionException {
+        Firestore db = FirestoreClient.getFirestore();
+
+        ApiFuture<QuerySnapshot> future = db.collection(Collection).get();
+        List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
+        ArrayList<Dock> dockList = new ArrayList<>();
+        for (QueryDocumentSnapshot doc : documents) {
+            Dock dock = doc.toObject(Dock.class);
+            dock.markAsLoadingFromFirestore(false);
+            dockList.add(dock);
+        }
+
+        return dockList;
     }
 
     public String updateDockDetails(Dock dock) throws InterruptedException, ExecutionException {
