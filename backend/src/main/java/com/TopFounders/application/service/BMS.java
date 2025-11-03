@@ -317,7 +317,7 @@ public class BMS implements Subscriber {
         return "Successful";
     }
 
-    public String resetInitialSystemState() throws ExecutionException, InterruptedException {
+   public String resetInitialSystemState() throws ExecutionException, InterruptedException {
         System.out.println("some");
         ArrayList<Dock> dockArrayList = dockService.getAllDocks();
         System.out.println(dockArrayList);
@@ -325,20 +325,50 @@ public class BMS implements Subscriber {
         ArrayList<Bike> bikeArrayList = bikeService.getAllBikes();
         System.out.println(bikeArrayList);
          System.out.println("hello");
-        for(Dock dock : dockArrayList){
+
+       for(Dock dock : dockArrayList){
+        if (dock == null) {
+            System.out.println("⚠️ Skipping null dock entry");
+        continue;
+    }
             dock.setState(DockState.EMPTY);
             dock.setBike(null);
+           if (dock.getStationID() == null || dock.getStationID().isEmpty()) {
+               System.out.println("⚠️ Dock " + dock.getDockID() + " has no associated station ID");
+               continue;
+           }
             Station station1 =  stationService.getStationDetails(dock.getStationID());
+           if (station1 == null) {
+               System.out.println("⚠️ Station not found for station ID: " + dock.getStationID() );
+               continue;
+           }
+
             station1.updateADock(dock);
             stationService.updateStationDetails(station1);
         }
-
+       
         for(Bike bike : bikeArrayList){
+            if (bike == null) {
+                System.out.println("⚠️ Skipping null bike entry");
+                continue;
+            }
             bike.setState(new Available());
             bike.setDockID(bike.getBikeID());
             bike.setStateString("AVAILABLE");
-            Dock dock = dockService.getDockDetails(bike.getDockID());
+            Dock dock = dockService.getDockDetails(bike.getBikeID());
+            if (dock == null) {
+                System.out.println("⚠️ No dock found for bike ID: " + bike.getBikeID());
+                continue;
+            }
+            if (dock.getStationID() == null || dock.getStationID().isEmpty()) {
+                System.out.println("⚠️ Dock " + dock.getDockID() + " has no associated station ID");
+                continue;
+            }
             Station station = stationService.getStationDetails(dock.getStationID());
+            if (station == null) {
+                System.out.println("⚠️ Station not found for station ID: " + dock.getStationID());
+                continue;
+            }
             station.setOperationalState(StationOperationalState.ACTIVE);
             station.getOccupancyStatus();
             dock.setBike(bike);
