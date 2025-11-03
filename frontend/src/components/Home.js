@@ -202,7 +202,7 @@ export default function Home() {
                 setStationState(stationStatus);
                 const now = new Date();
                 now.setMinutes(now.getMinutes() + 5);
-                setReservationExpiry(now.toLocaleTimeString());
+                setReservationExpiry(now.toLocaleTimeString("en-GB", { hour12: false }));
                 fetchStations();
             } else {
                 logMessage(`❌ Reservation failed for bike ${bikeID}.`);
