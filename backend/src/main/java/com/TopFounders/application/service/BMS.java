@@ -181,6 +181,26 @@ public class BMS implements Subscriber {
            System.out.println(pricingPlan.getPlanID());
            System.out.println(pricingPlan.getPlanName());
 
+
+            if(planID.equals("1")){
+                System.out.println(calculateTotalAmount(trip.getStartTime(), trip.getEndTime(), pricingPlan.getRatePerMinute()));
+                if(trip.getReservation().getBike().getType() == BikeType.E_BIKE){
+                    payment.setAmount((Double) ( 20 +pricingPlan.getBaseFee() + calculateTotalAmount(trip.getStartTime(), trip.getEndTime(), pricingPlan.getRatePerMinute())));
+
+                }
+                else {
+                    payment.setAmount((Double) (pricingPlan.getBaseFee() + calculateTotalAmount(trip.getStartTime(), trip.getEndTime(), pricingPlan.getRatePerMinute())));
+                }}
+            else if (planID.equals("2") ||planID.equals("3")){
+                payment.setAmount((Double)(pricingPlan.getBaseFee() + calculateTotalAmount(trip.getStartTime(),trip.getEndTime(),pricingPlan.getRatePerMinute())));
+            }
+
+            trip.setRatePerMinute((Double)(pricingPlan.getRatePerMinute()));
+
+
+            trip.setPricingPlan(pricingPlan);
+
+
             if(planID.equals("1")){
                 System.out.println(calculateTotalAmount(trip.getStartTime(), trip.getEndTime(), pricingPlan.getRatePerMinute()));
                 if(trip.getReservation().getBike().getType() == BikeType.E_BIKE){
@@ -357,6 +377,7 @@ public class BMS implements Subscriber {
         for(Bike bike : bikeArrayList){
             bike.returnBike(); // sets the state to available
             bike.setDockID(bike.getBikeID());
+
             Dock dock = dockService.getDockDetails(bike.getDockID());
             Station station = stationService.getStationDetails(dock.getStationID());
             station.setOperationalState(StationOperationalState.ACTIVE);
