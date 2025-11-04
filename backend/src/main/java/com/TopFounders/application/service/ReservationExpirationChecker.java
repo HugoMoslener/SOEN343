@@ -22,7 +22,7 @@ public class ReservationExpirationChecker {
     }
 
     @Scheduled(fixedRate = 30000)
-    public void checkExpiredReservations() throws ExecutionException, InterruptedException {
+    public void checkExpiredReservations() throws ExecutionException, InterruptedException, IllegalStateException {
         ArrayList<Reservation> reservations = reservationService.getAllReservations();
 
         for (Reservation reservation : reservations) {

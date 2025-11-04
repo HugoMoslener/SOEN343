@@ -6,7 +6,6 @@ import com.TopFounders.domain.Strategy.PricingStrategy;
 import com.TopFounders.domain.factory.RiderCreator;
 import com.TopFounders.domain.model.*;
 import com.TopFounders.domain.observer.Subscriber;
-import com.TopFounders.domain.state.*;
 
 import java.sql.Time;
 import java.time.Duration;
@@ -37,8 +36,10 @@ public class BMS implements Subscriber {
         }
         return instance;
     }
+
     public void setPricingStrategy(PricingStrategy pricingStrategy){this.pricingStrategy = pricingStrategy;}
     public double doPricingStrategy(Trip trip){return pricingStrategy.calculateTotal(trip);};
+
 
     public String saveRiderData(String username, String paymentInformation, String email, String fullName, String address, String role) throws ExecutionException, InterruptedException {
         RiderCreator factory = new RiderCreator();
@@ -51,8 +52,8 @@ public class BMS implements Subscriber {
         Reservation reservation = reservationService.getReservationDetails(reservationID);
         if((reservation.getRider().getUsername().equals(username))) {
             Bike bike1 = bikeService.getBikeDetails(reservation.getBike().getBikeID());
-            bike1.setStateString("AVAILABLE");
-            bike1.setState(new Available());
+            //bike1.setStateString("AVAILABLE");
+            bike1.returnBike(); // return it from reservation
             Dock dock = dockService.getDockDetails(bike1.getDockID());
             dock.setBike(bike1);
 
@@ -75,7 +76,7 @@ public class BMS implements Subscriber {
     }
 
 
-    public String reserveBike(String stationName,Rider rider, String bikeID, String username) throws ExecutionException, InterruptedException {
+    public String reserveBike(String stationName,Rider rider, String bikeID, String username) throws ExecutionException, InterruptedException, IllegalStateException {
        System.out.println("reserveBike started");
 
        for(Reservation reservation: reservationService.getAllReservations()){ // prevents a user from having more than one reservation
@@ -85,39 +86,42 @@ public class BMS implements Subscriber {
                }
            }
        }
-        Bike bike = MapService.getInstance().getAvailableBike(stationName,bikeID);
-        System.out.println(bike.getBikeID());
-        Bike bike1 = bikeService.getBikeDetails(bike.getBikeID());
 
-        bike1.setState(bike1.getState());
-        bike1.reserve();
+       // Create two bike objects
+        Bike bike = MapService.getInstance().getAvailableBike(stationName,bikeID); // gets the bike instance from the map service (not the database ig)
+        Bike localBikeInstance = bikeService.getBikeDetails(bike.getBikeID()); // get the bike object from the database
 
-        Dock dock = dockService.getDockDetails(bike1.getDockID());
-        dock.setBike(bike1);
-        System.out.println("SOme thing");
+        localBikeInstance.setBikeStateByString(localBikeInstance.getStateString());
+        // Try to reserve bike, need to throw an exception here if the bike is not reservable
+        localBikeInstance.reserve();
 
-        String input = bike1.getDockID() ;
+        // Get current dock information for updating
+        Dock dock = dockService.getDockDetails(localBikeInstance.getDockID());
+        dock.setBike(localBikeInstance); // update what the bike looks like in the dock
+
+        String input = localBikeInstance.getDockID() ;
         int lastDash = input.lastIndexOf("-");
 
         String result = input.substring(0, lastDash);
-        System.out.println("reserveBike middle");
         Station station = stationService.getStationDetails(result);
         station.updateADock(dock);
 
+        // If the dock is not out of service, then make sure the backend is up-to-date with this new change
         if(dock.getState() != DockState.OUT_OF_SERVICE){
-        bikeService.updateBikeDetails(bike1);
-        dockService.updateDockDetails(dock);
-        stationService.updateStationDetails(station);
+            bikeService.updateBikeDetails(localBikeInstance);
+            dockService.updateDockDetails(dock);
+            stationService.updateStationDetails(station);
 
+            Reservation reservation = new Reservation(rider,localBikeInstance);
+            reservationService.saveReservation(reservation);
+            return reservation.getReservationID();
+        }
 
-        Reservation reservation = new Reservation(rider,bike1);
-        reservationService.saveReservation(reservation);
-        System.out.println("reserveBike finished");
-        return reservation.getReservationID();}
+        // If the dock was out of service
         return null;
     }
 
-    public String undockBike(String username, String reservationID) throws ExecutionException, InterruptedException {
+    public String undockBike(String username, String reservationID) throws ExecutionException, InterruptedException, IllegalStateException {
         Reservation reservation = reservationService.getReservationDetails(reservationID);
         Bike bike = bikeService.getBikeDetails(reservation.getBike().getBikeID());
 
@@ -133,7 +137,7 @@ public class BMS implements Subscriber {
             Trip trip = reservation.createTrip(station.getAddress(),new Payment(),new PricingPlan());
             reservation.setState(ReservationState.CONFIRMED);
 
-            bike.setState(bike.getState());
+            bike.setBikeState(bike.getState());
             bike.checkout();
 
             bike.setDockID(null);
@@ -164,6 +168,7 @@ public class BMS implements Subscriber {
         else if(planID.equals("2") || planID.equals("3")) {
             setPricingStrategy(new PremiumPlanStrategy());
         }
+
         Reservation reservation = reservationService.getReservationDetails(reservationID);
         Trip trip = tripService.getTripDetails(reservation.getTripID());
         Bike bike = bikeService.getBikeDetails(reservation.getBike().getBikeID());
@@ -183,11 +188,13 @@ public class BMS implements Subscriber {
             trip.setPayment(payment);
             trip.setArrival(station.getAddress());
             trip.setEndTime(LocalTime.now().toString());
+             PricingPlan pricingPlan = trip.getPricingPlan();
 
-            PricingPlan pricingPlan = trip.getPricingPlan();
             pricingPlan.setPlanInfo(planID);
-            System.out.println(pricingPlan.getPlanID());
-            System.out.println(pricingPlan.getPlanName());
+
+           System.out.println(pricingPlan.getPlanID());
+           System.out.println(pricingPlan.getPlanName());
+
             trip.setPricingPlan(pricingPlan);
             trip.setRatePerMinute((Double)(pricingPlan.getRatePerMinute()));
             if(planID.equals("1")) {
@@ -199,15 +206,22 @@ public class BMS implements Subscriber {
                 payment.setAmount(pricingStrategy.calculateTotal(trip));
             }
 
-            bike.setState(bike.getState());
+
+            // update local bike
+            bike.setBikeState(bike.getState());
             bike.returnBike();
 
             bike.setDockID(dockID);
+
+            // update local dock
             dock.setBike(bike);
             dock.setState(DockState.OCCUPIED);
+
+            // update local station
             station.updateADock(dock);
             station.getOccupancyStatus();
 
+            // update backend
             stationService.updateStationDetails(station);
             dockService.updateDockDetails(dock);
             bikeService.updateBikeDetails(bike);
@@ -236,22 +250,37 @@ public class BMS implements Subscriber {
         if(dockA.getState() != DockState.OCCUPIED || dockB.getState() != DockState.EMPTY){return "Unsuccessful";}
         if(bike.getStateString().equals("RESERVED") || bike.getStateString().equals("ONTRIP")){return "Unsuccessful";}
 
-        System.out.println("moveabike");
+        System.out.println("Moving bike " + bike.getBikeID());
+
+        // updating the dock's statuses
         dockA.setState(DockState.EMPTY);
         dockB.setState(DockState.OCCUPIED);
+
+        // changing the dock associated with the bike is set to
         bike.setDockID(dockB.getDockID());
+
+        // updating local dock's Bike instance
         dockB.setBike(bike);
         dockA.setBike(null);
+
+        // update the backend for station 1 (dock A)
         Station station1 =  stationService.getStationDetails(dockA.getStationID());
         station1.updateADock(dockA);
         stationService.updateStationDetails(station1);
+
+        // update the backend for station 2 (dock B)
         Station station2 =  stationService.getStationDetails(dockB.getStationID());
         station2.updateADock(dockB);
         stationService.updateStationDetails(station2);
+
+        // update the backend for the docks
         dockService.updateDockDetails(dockA);
         dockService.updateDockDetails(dockB);
+
+        // update the backend for the bike
         bikeService.updateBikeDetails(bike);
-        System.out.println("end");
+
+        System.out.println("Bike moved successfully");
 
         return "Successful";
     }
@@ -263,12 +292,11 @@ public class BMS implements Subscriber {
         return "Successful";
     }
 
-    public String setABikeAsMaintenance(Bike bike) throws ExecutionException, InterruptedException {
+    public String setABikeAsMaintenance(Bike bike) throws ExecutionException, InterruptedException, IllegalStateException {
+        bike.setBikeStateByString(bike.getStateString());
+        bike.maintenance(); // sets bike to maintenance
         String id = bike.getDockID(); // update the dock and station as well
-
-        bike.setState(new Maintenance());
         bike.setDockID(id);
-        bike.setStateString("MAINTENANCE");
         Dock dock = dockService.getDockDetails(bike.getDockID());
         Station station = stationService.getStationDetails(dock.getStationID());
         dock.setBike(bike);
@@ -288,8 +316,7 @@ public class BMS implements Subscriber {
     }
 
     public String setABikeAsAvailable(Bike bike) throws ExecutionException, InterruptedException {
-        bike.setState(new Available()); // update the dock and station as well
-        bike.setStateString("AVAILABLE");
+        bike.returnBike(); // sets bike back to Available
         Dock dock = dockService.getDockDetails(bike.getDockID());
         Station station = stationService.getStationDetails(dock.getStationID());
         dock.setBike(bike);
@@ -309,37 +336,38 @@ public class BMS implements Subscriber {
         ArrayList<Bike> bikeArrayList = bikeService.getAllBikes();
         System.out.println(bikeArrayList);
          System.out.println("hello");
-
-       for(Dock dock : dockArrayList){
-        if (dock == null) {
-            System.out.println("⚠️ Skipping null dock entry");
-        continue;
-    }
+        for(Dock dock : dockArrayList){
+            if (dock == null) {
+                System.out.println("⚠️ Skipping null dock entry");
+                continue;
+            }
             dock.setState(DockState.EMPTY);
             dock.setBike(null);
-           if (dock.getStationID() == null || dock.getStationID().isEmpty()) {
-               System.out.println("⚠️ Dock " + dock.getDockID() + " has no associated station ID");
-               continue;
-           }
+            if (dock.getStationID() == null || dock.getStationID().isEmpty()) {
+                System.out.println("⚠️ Dock " + dock.getDockID() + " has no associated station ID");
+                continue;
+            }
             Station station1 =  stationService.getStationDetails(dock.getStationID());
-           if (station1 == null) {
-               System.out.println("⚠️ Station not found for station ID: " + dock.getStationID() );
-               continue;
-           }
+            if (station1 == null) {
+                System.out.println("⚠️ Station not found for station ID: " + dock.getStationID() );
+                continue;
+            }
 
             station1.updateADock(dock);
             dockService.updateDockDetails(dock);
             stationService.updateStationDetails(station1);
         }
 
+
         for(Bike bike : bikeArrayList){
             if (bike == null) {
                 System.out.println("⚠️ Skipping null bike entry");
                 continue;
             }
-            bike.setState(new Available());
+
+            bike.returnBike(); // sets the state to available
             bike.setDockID(bike.getBikeID());
-            bike.setStateString("AVAILABLE");
+
             Dock dock = dockService.getDockDetails(bike.getBikeID());
             if (dock == null) {
                 System.out.println("⚠️ No dock found for bike ID: " + bike.getBikeID());
@@ -363,6 +391,7 @@ public class BMS implements Subscriber {
             dockService.updateDockDetails(dock);
             bikeService.updateBikeDetails(bike);
         }
+
         return "Successful";
     }
 

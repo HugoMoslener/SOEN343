@@ -1,7 +1,5 @@
 package com.TopFounders.domain.model;
 
-import com.TopFounders.domain.state.BikeState;
-
 public class EBike extends Bike {
 
     public EBike() {
