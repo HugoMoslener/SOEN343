@@ -91,17 +91,6 @@ public class Bike implements Publisher {
 
     @Exclude
     public BikeState getState() {
-        /*if (state == null && stateString != null) {
-            // Convert back from string
-            this.state = switch (stateString.toUpperCase()) {
-                case "AVAILABLE" -> new Available();
-                case "RESERVED" -> new Reserved();
-                case "MAINTENANCE" -> new Maintenance();
-                case "ONTRIP" -> new OnTrip();
-                default -> new Available();
-            };
-        }
-        return state;*/
         return state;
     }
 
@@ -127,24 +116,6 @@ public class Bike implements Publisher {
             subscriber.update(eventType, this);
         }
     }
-
-    // what is this doing???
-    /*private void updateState(){
-        switch (state){
-            case AVAILABLE -> {
-                notifySubscribers("BIKE_RESERVED");
-            }
-            case RESERVED -> {
-                notifySubscribers("BIKE_CHECKED_OUT");
-            }
-            case MAINTENANCE -> {
-                notifySubscribers("BIKE_RETURNED");
-            }
-            case ON_TRIP -> {
-                notifySubscribers("BIKE_MAINTENANCE");
-            }
-        }
-    }*/
 
     // Methods to change state
     // 1. Check what state the bike is in

@@ -1,12 +1,15 @@
 package com.TopFounders.application.service;
 
-import com.TopFounders.domain.factory.UserFactory;
+import com.TopFounders.domain.factory.RiderCreator;
 import com.TopFounders.domain.model.*;
 import com.TopFounders.domain.observer.Subscriber;
 
+import java.sql.Time;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
 public class BMS implements Subscriber {
@@ -31,8 +34,8 @@ public class BMS implements Subscriber {
     }
 
     public String saveRiderData(String username, String paymentInformation, String email, String fullName, String address, String role) throws ExecutionException, InterruptedException {
-        UserFactory factory = new UserFactory();
-        String message = riderService.saveRider((Rider)factory.CreateUser(username,paymentInformation,email,fullName,address, "rider"));
+        RiderCreator factory = new RiderCreator();
+        String message = riderService.saveRider(factory.createUser(username,paymentInformation,email,fullName,address, "rider"));
 
         return message;
     }
@@ -80,11 +83,8 @@ public class BMS implements Subscriber {
         Bike bike = MapService.getInstance().getAvailableBike(stationName,bikeID); // gets the bike instance from the map service (not the database ig)
         Bike localBikeInstance = bikeService.getBikeDetails(bike.getBikeID()); // get the bike object from the database
 
-        System.out.println(bikeID + "'s state is " + localBikeInstance.getState());
-        // Why is it setting the state to what it already is?
         localBikeInstance.setBikeStateByString(localBikeInstance.getStateString());
         // Try to reserve bike, need to throw an exception here if the bike is not reservable
-
         localBikeInstance.reserve();
 
         // Get current dock information for updating
@@ -153,7 +153,7 @@ public class BMS implements Subscriber {
             return "Unsuccessful";
     }
 
-    public String dockBike(String username, String reservationID, String dockID) throws ExecutionException, InterruptedException {
+    public Trip dockBike(String username, String reservationID, String dockID, String planID) throws ExecutionException, InterruptedException {
 
         Reservation reservation = reservationService.getReservationDetails(reservationID);
         Trip trip = tripService.getTripDetails(reservation.getTripID());
@@ -169,15 +169,40 @@ public class BMS implements Subscriber {
 
         if((reservation.getRider().getUsername().equals(username)) & (reservation.getState() == ReservationState.CONFIRMED) & (dock.getState() == DockState.EMPTY) & (station.getOccupancyStatus() != StationOccupancyState.FULL) ){
             Payment payment = trip.getPayment();
-            payment.setPaidDate(LocalDate.now().toString());
+
             payment.setPaymentMethod(rider.getPaymentInformation());
             trip.setPayment(payment);
             trip.setArrival(station.getAddress());
             trip.setEndTime(LocalTime.now().toString());
+             PricingPlan pricingPlan = trip.getPricingPlan();
+
+            pricingPlan.setPlanInfo(planID);
+
+           System.out.println(pricingPlan.getPlanID());
+           System.out.println(pricingPlan.getPlanName());
+
+            if(planID.equals("1")){
+                System.out.println(calculateTotalAmount(trip.getStartTime(), trip.getEndTime(), pricingPlan.getRatePerMinute()));
+                if(trip.getReservation().getBike().getType() == BikeType.E_BIKE){
+                    payment.setAmount((Double) ( 20 +pricingPlan.getBaseFee() + calculateTotalAmount(trip.getStartTime(), trip.getEndTime(), pricingPlan.getRatePerMinute())));
+
+                }
+                else {
+                    payment.setAmount((Double) (pricingPlan.getBaseFee() + calculateTotalAmount(trip.getStartTime(), trip.getEndTime(), pricingPlan.getRatePerMinute())));
+                }}
+            else if (planID.equals("2") ||planID.equals("3")){
+                payment.setAmount((Double)(pricingPlan.getBaseFee() + calculateTotalAmount(trip.getStartTime(),trip.getEndTime(),pricingPlan.getRatePerMinute())));
+            }
+
+            trip.setRatePerMinute((Double)(pricingPlan.getRatePerMinute()));
+
+
+            trip.setPricingPlan(pricingPlan);
 
             // update local bike
             bike.setBikeState(bike.getState());
             bike.returnBike();
+
             bike.setDockID(dockID);
 
             // update local dock
@@ -192,15 +217,45 @@ public class BMS implements Subscriber {
             stationService.updateStationDetails(station);
             dockService.updateDockDetails(dock);
             bikeService.updateBikeDetails(bike);
-            tripService.saveTrip(trip);
+            tripService.updateTripDetails(trip);
             trip.notifySubscribers("TRIP_ENDED");
-            return "Successful";
+            return trip;
         }
 
-        return "Unsuccessful";
+        return null;
+    }
+    public  double calculateTotalAmount(String startTime, String endTime, Double ratePerMinute) {
+        if (ratePerMinute == null) {
+            System.out.println("Rate per minute not available.");
+            return 0.0;
+        }
+
+        LocalTime start = LocalTime.parse(startTime);
+        LocalTime end = LocalTime.parse(endTime);
+
+        if (end.isBefore(start)) {
+            end = end.plusHours(24);
+        }
+
+        Duration duration = Duration.between(start, end);
+        double minutes = duration.toMillis() / (1000.0 * 60);
+
+        return minutes * ratePerMinute;
     }
 
-    public String moveABikefromDockAToDockB(Dock dockA, Dock dockB, Bike bike) throws ExecutionException, InterruptedException {
+    public String paymentInterface(String tripID) throws ExecutionException, InterruptedException{
+        System.out.println("paymentInterface");
+        Trip trip = tripService.getTripDetails(tripID);
+        Payment payment = trip.getPayment();
+        payment.setPaidDate(LocalDate.now().toString());
+        trip.setPayment(payment);
+        System.out.println("paymentInterface");
+        tripService.updateTripDetails(trip);
+
+        return "Successful";
+    }
+
+    public String moveABikefromDockAToDockB(Dock dockA, Dock dockB,Bike bike) throws ExecutionException, InterruptedException {
        // if(dockA.getStationID().equals(dockB.getStationID())){return "Unsuccessful";}
         if(dockA.getState() != DockState.OCCUPIED || dockB.getState() != DockState.EMPTY){return "Unsuccessful";}
         if(bike.getStateString().equals("RESERVED") || bike.getStateString().equals("ONTRIP")){return "Unsuccessful";}
@@ -250,6 +305,15 @@ public class BMS implements Subscriber {
     public String setABikeAsMaintenance(Bike bike) throws ExecutionException, InterruptedException, IllegalStateException {
         bike.setBikeStateByString(bike.getStateString());
         bike.maintenance(); // sets bike to maintenance
+        String id = bike.getDockID(); // update the dock and station as well
+        bike.setDockID(id);
+        Dock dock = dockService.getDockDetails(bike.getDockID());
+        Station station = stationService.getStationDetails(dock.getStationID());
+        dock.setBike(bike);
+        dock.setState(DockState.OUT_OF_SERVICE);
+        station.updateADock(dock);
+        stationService.updateStationDetails(station);
+        dockService.updateDockDetails(dock);
         bikeService.updateBikeDetails(bike);
         return "Successful";
     }
@@ -263,7 +327,47 @@ public class BMS implements Subscriber {
 
     public String setABikeAsAvailable(Bike bike) throws ExecutionException, InterruptedException {
         bike.returnBike(); // sets bike back to Available
-        bikeService.updateBikeDetails(bike); // updates the bike state in the backend
+        Dock dock = dockService.getDockDetails(bike.getDockID());
+        Station station = stationService.getStationDetails(dock.getStationID());
+        dock.setBike(bike);
+        dock.setState(DockState.OCCUPIED);
+        station.updateADock(dock);
+        stationService.updateStationDetails(station);
+        dockService.updateDockDetails(dock);
+        bikeService.updateBikeDetails(bike);
+        return "Successful";
+    }
+
+    public String resetInitialSystemState() throws ExecutionException, InterruptedException {
+        System.out.println("some");
+        ArrayList<Dock> dockArrayList = dockService.getAllDocks();
+        System.out.println(dockArrayList);
+        System.out.println("reachedbike");
+        ArrayList<Bike> bikeArrayList = bikeService.getAllBikes();
+        System.out.println(bikeArrayList);
+         System.out.println("hello");
+        for(Dock dock : dockArrayList){
+            dock.setState(DockState.EMPTY);
+            dock.setBike(null);
+            Station station1 =  stationService.getStationDetails(dock.getStationID());
+            station1.updateADock(dock);
+            stationService.updateStationDetails(station1);
+        }
+
+        for(Bike bike : bikeArrayList){
+            bike.returnBike(); // sets the state to available
+            bike.setDockID(bike.getBikeID());
+            Dock dock = dockService.getDockDetails(bike.getDockID());
+            Station station = stationService.getStationDetails(dock.getStationID());
+            station.setOperationalState(StationOperationalState.ACTIVE);
+            station.getOccupancyStatus();
+            dock.setBike(bike);
+            dock.setState(DockState.OCCUPIED);
+            station.updateADock(dock);
+            stationService.updateStationDetails(station);
+            dockService.updateDockDetails(dock);
+            bikeService.updateBikeDetails(bike);
+        }
         return "Successful";
     }
 
@@ -271,9 +375,12 @@ public class BMS implements Subscriber {
         User user = userService.getUserDetails(username);
         ArrayList<Trip> trips = tripService.getAllTrip();
         if(user.getRole().equals("rider")){
-            ArrayList<Trip> trips1 = tripService.getAllTrip();
+            System.out.println("rider");
+            ArrayList<Trip> trips1 = new ArrayList<>();
             for(Trip trip : trips){
-                if(trip != null){
+                if(trip != null  && trip.getReservation() != null &&
+                        trip.getReservation().getRider() != null){
+                    System.out.println(trip.getReservation().getRider().getUsername());
                     if(trip.getReservation().getRider().getUsername().equals(username)){
                         trips1.add(trip);
                     }

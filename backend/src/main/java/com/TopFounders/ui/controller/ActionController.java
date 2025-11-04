@@ -3,10 +3,10 @@ package com.TopFounders.ui.controller;
 import com.TopFounders.application.service.*;
 import com.TopFounders.domain.model.*;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.util.ArrayList;
 
 @SpringBootApplication
 @RestController
@@ -63,16 +63,15 @@ public class ActionController {
     }
 
     @PostMapping("/dockBike")
-    public String BikeDocking(@RequestBody DockingHelperClass dockingHelperClass ){
+    public Trip BikeDocking(@RequestBody DockingHelperClass dockingHelperClass ){
         try{
             System.out.println("Post request reached here" + dockingHelperClass.getDockID() +":"+dockingHelperClass.getReservationID()+":"+dockingHelperClass.getRiderID());
             MapService.getInstance().setStations(stationService.getAllStations());
-            String message1 = BMS.getInstance().dockBike(dockingHelperClass.getRiderID(),dockingHelperClass.getReservationID(),dockingHelperClass.getDockID());
-            return message1;
+            return BMS.getInstance().dockBike(dockingHelperClass.getRiderID(),dockingHelperClass.getReservationID(),dockingHelperClass.getDockID(),dockingHelperClass.getPlanID() );
+
         }
         catch (Exception e) {
-            System.out.println("ERROR --> " + e.getMessage());
-            return "false";
+            return null;
         }
 
     }
@@ -166,7 +165,46 @@ public class ActionController {
             return message;
         }
         catch (Exception e) {
-            System.out.println("ERROR --> " + e.getMessage());
+            return "false";
+        }
+
+    }
+
+    @PostMapping("/getAllTripsForUser")
+    public ArrayList<Trip> getAllTripsForUser(@RequestBody String username ){
+        try{
+            System.out.println("Post request reached here");
+            ArrayList<Trip> trips = BMS.getInstance().getAllTripsForRiderOrOperator(username);
+            return trips;
+        }
+        catch (Exception e) {
+            return null;
+        }
+
+    }
+
+    @PostMapping("/confirmPayment")
+    public String confirmPayment(@RequestBody String tripID ){
+        try{
+            System.out.println("Post request reached here : " + tripID );
+            String message = BMS.getInstance().paymentInterface(tripID);
+            return message;
+        }
+        catch (Exception e) {
+            return "false";
+        }
+
+    }
+
+    @GetMapping("/resetInitialSystemState")
+    public String resetState(){
+        try{
+            System.out.println("Post request reached here");
+            String message = BMS.getInstance().resetInitialSystemState();
+
+            return message;
+        }
+        catch (Exception e) {
             return "false";
         }
 
