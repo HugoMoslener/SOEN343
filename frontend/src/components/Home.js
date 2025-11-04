@@ -143,9 +143,28 @@ export default function Home() {
     const fetchStations = () => {
         fetch("/api/create/getAllStations")
             .then((r) => r.json())
-            .then(setStations)
-            .catch((e) => console.error("Error fetching stations:", e));
+            .then((data) => {
+                setStations(data);
+                console.log("✅ Successfully fetched stations!");
+                const role = localStorage.getItem("role");
+                if (role === "operator") {
+                    data.forEach((station) => {
+                        const totalDocks = station.docks.length;
+                        const occupiedDocks = station.docks.filter(
+                            (dock) => dock.state === "OCCUPIED"
+                        ).length;
+
+                        if (occupiedDocks === totalDocks) {
+                            logMessage(`🚲 Station ${station.name} is FULL. Rebalancing needed.`);
+                        } else if (occupiedDocks === 0) {
+                            logMessage(`🚫 Station ${station.name} is EMPTY. Rebalancing needed.`);
+                        }
+                    });
+                }
+            })
+            .catch((e) => console.error("❌ Error fetching stations:", e));
     };
+
     const resetSystemState = async  () => {
         console.log("Reset button clicked"); // check if this prints
 
@@ -240,6 +259,7 @@ export default function Home() {
                 setIsUndocked(true);
                 setReservedBike((prev) => ({ ...prev, checkedOut: true }));
                 logMessage(`Checked out bike ${reservedBike.bikeID}.`);
+                logMessage(`Trip officially Started`);
                 setStationState(null);
                 setReservationExpiry(null);
                 setCount(c => c + 1);
@@ -614,6 +634,7 @@ export default function Home() {
                                     <p>Free Docks: {station.freeDocks}</p>
                                     <p>Capacity: {station.docks.length}</p>
                                     <p>Bikes/Capacity: {station.bikesAvailable}/{station.docks.length}= { Math.round(station.bikesAvailable/station.docks.length * 100)} %</p>
+
                                     <p>Reservation Hold Time: 5 minutes</p>
                                     {role === "operator" && (
                                         <button

@@ -183,6 +183,7 @@ public class BMS implements Subscriber {
             trip.setPayment(payment);
             trip.setArrival(station.getAddress());
             trip.setEndTime(LocalTime.now().toString());
+
             PricingPlan pricingPlan = trip.getPricingPlan();
             pricingPlan.setPlanInfo(planID);
             System.out.println(pricingPlan.getPlanID());
@@ -206,6 +207,7 @@ public class BMS implements Subscriber {
             dock.setState(DockState.OCCUPIED);
             station.updateADock(dock);
             station.getOccupancyStatus();
+
             stationService.updateStationDetails(station);
             dockService.updateDockDetails(dock);
             bikeService.updateBikeDetails(bike);
