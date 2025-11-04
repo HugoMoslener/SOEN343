@@ -39,6 +39,7 @@ public class ActionController {
             return message;
         }
         catch (Exception e) {
+            System.out.println("ERROR --> " + e.getMessage());
             return "false";
         }
 
@@ -55,6 +56,7 @@ public class ActionController {
             return message1;
         }
         catch (Exception e) {
+            System.out.println("ERROR --> " + e.getMessage());
             return "false";
         }
 
@@ -85,6 +87,7 @@ public class ActionController {
             return message;
         }
         catch (Exception e) {
+            System.out.println("ERROR --> " + e.getMessage());
             return "false";
         }
 
@@ -102,6 +105,7 @@ public class ActionController {
             return message;
         }
         catch (Exception e) {
+            System.out.println("ERROR --> " + e.getMessage());
             return "false";
         }
 
@@ -116,6 +120,7 @@ public class ActionController {
             return message;
         }
         catch (Exception e) {
+            System.out.println("ERROR --> " + e.getMessage());
             return "false";
         }
 
@@ -130,6 +135,7 @@ public class ActionController {
             return message;
         }
         catch (Exception e) {
+            System.out.println("ERROR --> " + e.getMessage());
             return "false";
         }
 
@@ -144,6 +150,7 @@ public class ActionController {
             return message;
         }
         catch (Exception e) {
+            System.out.println("ERROR --> " + e.getMessage());
             return "false";
         }
 
