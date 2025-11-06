@@ -1,150 +1,11 @@
-import { useState,useEffect  } from "react";
+import {useState, useEffect} from "react";
+import { collection, onSnapshot, query } from "firebase/firestore";
+import { db } from "../firebase/firebaseConfig"; // adjust to your Firebase config path
 
-const mockData = [
-    {
-        tripId: "T007",
-        rider: "John Doe",
-        startStation: "Downtown",
-        endStation: "Uptown",
-        bikeType: "E-Bike",
-        cost: 15.75,
-        startTime: "2024-10-15T08:00",
-        endTime: "2024-10-15T08:45",
-        duration: 45,
-        baseFee: 5,
-        perMinuteRate: 0.25,
-        eBikeSurcharge: 5,
-    },
-    {
-        tripId: "T008",
-        rider: "John Doe",
-        startStation: "Lakeside",
-        endStation: "Central Park",
-        bikeType: "Standard",
-        cost: 8.5,
-        startTime: "2024-10-16T09:10",
-        endTime: "2024-10-16T09:45",
-        duration: 35,
-        baseFee: 3,
-        perMinuteRate: 0.15,
-        eBikeSurcharge: 0,
-    },
-    {
-        tripId: "T009",
-        rider: "John Doe",
-        startStation: "Downtown",
-        endStation: "Uptown",
-        bikeType: "E-Bike",
-        cost: 15.75,
-        startTime: "2024-10-15T08:00",
-        endTime: "2024-10-15T08:45",
-        duration: 45,
-        baseFee: 5,
-        perMinuteRate: 0.25,
-        eBikeSurcharge: 5,
-    },
-    {
-        tripId: "T010",
-        rider: "John Doe",
-        startStation: "Lakeside",
-        endStation: "Central Park",
-        bikeType: "Standard",
-        cost: 8.5,
-        startTime: "2024-10-16T09:10",
-        endTime: "2024-10-16T09:45",
-        duration: 35,
-        baseFee: 3,
-        perMinuteRate: 0.15,
-        eBikeSurcharge: 0,
-    },{
-        tripId: "T001",
-        rider: "John Doe",
-        startStation: "Downtown",
-        endStation: "Uptown",
-        bikeType: "E-Bike",
-        cost: 15.75,
-        startTime: "2025-10-15T08:00",
-        endTime: "2025-10-15T08:45",
-        duration: 45,
-        baseFee: 5,
-        perMinuteRate: 0.25,
-        eBikeSurcharge: 5,
-    },
-    {
-        tripId: "T002",
-        rider: "John Doe",
-        startStation: "Lakeside",
-        endStation: "Central Park",
-        bikeType: "Standard",
-        cost: 8.5,
-        startTime: "2025-10-16T09:10",
-        endTime: "2025-10-16T09:45",
-        duration: 35,
-        baseFee: 3,
-        perMinuteRate: 0.15,
-        eBikeSurcharge: 0,
-    },
-    {
-        tripId: "T003",
-        rider: "John Doe",
-        startStation: "West Station",
-        endStation: "East Point",
-        bikeType: "Standard",
-        cost: 10.25,
-        startTime: "2025-10-20T14:00",
-        endTime: "2025-10-20T14:40",
-        duration: 40,
-        baseFee: 3,
-        perMinuteRate: 0.18,
-        eBikeSurcharge: 0,
-    },
-    {
-        tripId: "T004",
-        rider: "John Doe",
-        startStation: "Airport",
-        endStation: "Downtown",
-        bikeType: "E-Bike",
-        cost: 20.0,
-        startTime: "2025-10-25T10:00",
-        endTime: "2025-10-25T10:50",
-        duration: 50,
-        baseFee: 5,
-        perMinuteRate: 0.25,
-        eBikeSurcharge: 5,
-    },
-    {
-        tripId: "T005",
-        rider: "John Doe",
-        startStation: "Harbor",
-        endStation: "Old Town",
-        bikeType: "Standard",
-        cost: 12.0,
-        startTime: "2025-10-28T11:00",
-        endTime: "2025-10-28T11:40",
-        duration: 40,
-        baseFee: 3,
-        perMinuteRate: 0.18,
-        eBikeSurcharge: 0,
-    },
-    {
-        tripId: "T006",
-        rider: "John Doe",
-        startStation: "East Point",
-        endStation: "University",
-        bikeType: "Standard",
-        cost: 13.0,
-        startTime: "2025-10-30T12:00",
-        endTime: "2025-10-30T12:45",
-        duration: 45,
-        baseFee: 3,
-        perMinuteRate: 0.2,
-        eBikeSurcharge: 0,
-    },
-];
-
-export default function RideHistory({ user = { fullName: "John Doe" }, role = "rider" }) {
+export default function RideHistory({user = { username: localStorage.getItem("fullName"), fullName: localStorage.getItem("fullName") }, role = "rider"}){
     const [search, setSearch] = useState("");
     const [bikeType, setBikeType] = useState("");
+    const [bikeID, setBikeID] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [filtered, setFiltered] = useState([]);
@@ -154,72 +15,252 @@ export default function RideHistory({ user = { fullName: "John Doe" }, role = "r
     const [currentPage, setCurrentPage] = useState(1);
     const ridesPerPage = 8;
 
+
+
     const fetchTripsForUser = () => {
-        fetch("api/action/getAllTripsForUser", {
+        fetch("/api/action/getAllTripsForUser", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: localStorage.getItem("username"), // sending the username in request body
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: localStorage.getItem("username") }),
         })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error("Failed to fetch trips");
-                }
-                return response.json(); // convert response to JSON
+            .then(r => {
+                if (!r.ok) throw new Error("Failed to fetch trips");
+                return r.json();
             })
-            .then((data) => {
-                console.log("Trips fetched:", data);
-                setTrips(data); // store the list of trips
+            .then(data => {
+                const normalized = (Array.isArray(data) ? data : []).map(t => {
+                    console.log("Fetched tripId values:", t.tripId, t.tripID, t.id);
+
+                    const rider = t?.reservation?.rider;
+                    const bikeTypeRaw = t?.reservation?.bike?.type;
+                    const date = t?.reservation?.date || null;
+
+                    // Raw start/end times from Firebase
+                    const startTimeRaw = t?.reservation?.rider?.startTime || t?.startTime;
+                    const endTimeRaw = t?.endTime;
+
+                    // Convert date + time strings into full ISO
+                    const toIso = (d, tm) => (d && tm) ? `${d}T${String(tm).split('.')[0]}` : null;
+                    const startTimeISO = toIso(date, startTimeRaw);
+                    const endTimeISO = toIso(date, endTimeRaw);
+
+                    // Compute duration (minutes)
+                    let duration = null;
+                    if (startTimeISO && endTimeISO) {
+                        const start = new Date(startTimeISO);
+                        const end = new Date(endTimeISO);
+                        const diffMs = end - start;
+                        duration = diffMs > 0 ? Math.round(diffMs / 60000) : 0;
+                    }
+
+                    // Build timeline string
+                    const fmt = d => d ? new Date(d).toLocaleString("en-US", {
+                        dateStyle: "short",
+                        timeStyle: "medium"
+                    }) : "—";
+                    const timeline = `Checkout at ${fmt(startTimeISO)} → Returned at ${fmt(endTimeISO)}`;
+
+                    return {
+                        tripId: t.tripId ?? t.tripID ?? t.id ?? "",
+                        rider: rider?.fullName ?? rider?.username ?? "",
+                        startStation: t.origin ?? "",
+                        endStation: t.arrival ?? "",
+                        bikeType: bikeTypeRaw?.toUpperCase() === "E_BIKE" ? "E-Bike" : "Standard",
+                        bikeID: t?.reservation?.bike?.bikeID ?? "",
+                        cost: Number(t?.payment?.amount ?? 0),
+                        startTime: startTimeISO,
+                        endTime: endTimeISO,
+                        duration,
+                        timeline,
+                        baseFee: Number(t?.pricingPlan?.baseFee ?? 0),
+                        perMinuteRate: Number(t?.pricingPlan?.ratePerMinute ?? 0),
+                        eBikeSurcharge:
+                            bikeTypeRaw?.toUpperCase() === "E_BIKE" &&
+                            t?.pricingPlan?.planName?.toLowerCase() === "base plan"
+                                ? 20
+                                : 0,
+                    };
+                });
+
+                console.log("Normalized trips:", normalized);
+
+                const completedTrips = normalized.filter(t => t.endTime); // only those that have ended
+                const sorted = normalized.sort((a, b) => new Date(b.endTime) - new Date(a.endTime));
+
+                setTrips(normalized);
+                setFiltered(normalized);
             })
-            .catch((error) => {
-                console.error("Error fetching trips:", error);
-            });
+            .catch(err => console.error("Error fetching trips:", err));
     };
 
     useEffect(() => {
         fetchTripsForUser();
-    }, []); // dependency ensures it refetches if username changes
+    }, []);
+
+    // If you want the list to re-display after a new fetch even without pressing Search
+    useEffect(() => {
+        if (trips.length && filtered.length === 0) {
+            setFiltered(trips);
+        }
+    }, [trips]);
+
+
+// realtime updates for operators only
+    useEffect(() => {
+        // Only operators use real-time updates
+        if (role !== "operator") return;
+
+        // Query all trips that have ended (endTime != null)
+        const tripsRef = collection(db, "trips");
+        const q = query(tripsRef); // you can add filters later if desired
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const updatedTrips = [];
+
+            snapshot.forEach((doc) => {
+                const t = doc.data();
+
+                // Only include completed trips (have endTime)
+                if (!t.endTime) return;
+
+                const rider = t?.reservation?.rider;
+                const bikeTypeRaw = t?.reservation?.bike?.type;
+                const date = t?.reservation?.date || null;
+                const startTimeRaw = t?.reservation?.rider?.startTime || t?.startTime;
+                const endTimeRaw = t?.endTime;
+
+                const toIso = (d, tm) => (d && tm) ? `${d}T${String(tm).split('.')[0]}` : null;
+                const startTimeISO = toIso(date, startTimeRaw);
+                const endTimeISO = toIso(date, endTimeRaw);
+
+                let duration = null;
+                if (startTimeISO && endTimeISO) {
+                    const start = new Date(startTimeISO);
+                    const end = new Date(endTimeISO);
+                    const diffMs = end - start;
+                    duration = diffMs > 0 ? Math.round(diffMs / 60000) : 0;
+                }
+
+                const fmt = d => d ? new Date(d).toLocaleString("en-US", {
+                    dateStyle: "short",
+                    timeStyle: "medium"
+                }) : "—";
+                const timeline = `Checkout at ${fmt(startTimeISO)} → Returned at ${fmt(endTimeISO)}`;
+
+                updatedTrips.push({
+                    tripId: t.tripId ?? t.tripID ?? t.id ?? "",
+                    rider: rider?.fullName ?? rider?.username ?? "",
+                    startStation: t.origin ?? "",
+                    endStation: t.arrival ?? "",
+                    bikeType: bikeTypeRaw?.toUpperCase() === "E_BIKE" ? "E-Bike" : "Standard",
+                    bikeID: t?.reservation?.bike?.bikeID ?? "",
+                    cost: Number(t?.payment?.amount ?? 0),
+                    startTime: startTimeISO,
+                    endTime: endTimeISO,
+                    duration,
+                    timeline,
+                    baseFee: Number(t?.pricingPlan?.baseFee ?? 0),
+                    perMinuteRate: Number(t?.pricingPlan?.ratePerMinute ?? 0),
+                    eBikeSurcharge:
+                        bikeTypeRaw?.toUpperCase() === "E_BIKE" &&
+                        t?.pricingPlan?.planName?.toLowerCase() === "base plan"
+                            ? 20
+                            : 0,
+                });
+            });
+
+            // Sort newest → oldest
+            const sorted = updatedTrips.sort((a, b) => new Date(b.endTime) - new Date(a.endTime));
+
+            setTrips(sorted);
+            setFiltered(sorted);
+            handleSearch(); // reapply active filters dynamically
+        });
+
+        // Cleanup listener on unmount
+        return () => unsubscribe();
+
+    }, [role]);
 
 
     const handleSearch = () => {
+        // Date format regex (YYYY-MM-DD)
+        const datePattern = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+
+        // Validate date formats if provided
+        if (startDate && !datePattern.test(startDate)) {
+            alert("Invalid start date format. Please use YYYY-MM-DD.");
+            return;
+        }
+        if (endDate && !datePattern.test(endDate)) {
+            alert("Invalid end date format. Please use YYYY-MM-DD.");
+            return;
+        }
+
+        // Validate only if both are filled
         if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
             alert("End date cannot be before start date.");
             return;
         }
 
-        const tripIdPattern = /^T\d{3,}$/;
+        const tripIdPattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
         if (search.trim() && !tripIdPattern.test(search.trim())) {
-            alert("Invalid Trip ID format. Use format like T001.");
+            alert("Invalid Trip ID format. Use format like xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.");
             return;
         }
 
-        let results = mockData;
+        let results = trips;
 
+        // Filter by rider (if applicable)
         if (role === "rider") {
-            results = results.filter((r) => r.rider === user.fullName);
+            const riderName = user.fullName || user.username || localStorage.getItem("fullName");
+            results = results.filter(r => r.rider === riderName);
         }
 
+        // Search by trip ID (partial match allowed — supports both tripId and tripID)
         if (search.trim()) {
-            results = results.filter((r) =>
-                r.tripId.toLowerCase().includes(search.trim().toLowerCase())
-            );
+            const cleanSearch = search.trim();
+            console.log("Searching for Trip ID:", cleanSearch);
+            results = results.filter(r => {
+                const id = r.tripID ?? r.tripId ?? "";
+                const match = id.includes(cleanSearch);
+                if (match) console.log("Matched trip:", id);
+                return match;
+            });
         }
 
+        // Filter by bike type
         if (bikeType) {
-            results = results.filter((r) => r.bikeType === bikeType);
+            results = results.filter(r => r.bikeType === bikeType);
         }
 
-        if (startDate) {
-            results = results.filter((r) => new Date(r.startTime) >= new Date(startDate));
-        }
-        if (endDate) {
-            results = results.filter((r) => new Date(r.endTime) <= new Date(endDate));
+        // Filter by start date only
+        if (startDate && !endDate) {
+            results = results.filter(r => new Date(r.startTime) >= new Date(startDate));
         }
 
+        // Filter by end date only
+        if (!startDate && endDate) {
+            results = results.filter(r => new Date(r.endTime) <= new Date(endDate));
+        }
+
+        // Filter by both (range)
+        if (startDate && endDate) {
+            results = results.filter(r => {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                const tripStart = new Date(r.startTime);
+                const tripEnd = new Date(r.endTime);
+                return tripStart >= start && tripEnd <= end;
+            });
+        }
+
+        // Sort newest → oldest
         results = results.sort((a, b) => new Date(b.endTime) - new Date(a.endTime));
+
         setFiltered(results);
-        setCurrentPage(1); // Reset to first page on new search
+        setCurrentPage(1);
     };
 
     // Pagination calculations
@@ -242,7 +283,7 @@ export default function RideHistory({ user = { fullName: "John Doe" }, role = "r
                     <label className="block text-sm text-gray-600 mb-1">Search by Trip ID</label>
                     <input
                         type="text"
-                        placeholder="e.g. T001"
+                        placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400"
@@ -317,7 +358,9 @@ export default function RideHistory({ user = { fullName: "John Doe" }, role = "r
                                         {ride.startStation} → {ride.endStation}
                                     </td>
                                     <td className="px-4 py-2">{ride.bikeType}</td>
-                                    <td className="px-4 py-2">${ride.cost.toFixed(2)}</td>
+                                    <td className="px-4 py-2">
+                                        ${Number(ride.cost ?? 0).toFixed(2)}
+                                    </td>
                                     <td className="px-4 py-2 text-center">
                                         <button
                                             onClick={() => setSelectedRide(ride)}
@@ -369,7 +412,7 @@ export default function RideHistory({ user = { fullName: "John Doe" }, role = "r
                 </>
             ) : (
                 <p className="mt-6 text-gray-500 italic text-center">
-                    No results found. Clear filters or check the Trip ID.
+                    No results found. Try clearing or adjusting your filters — they may be too specific.
                 </p>
             )}
 
@@ -386,6 +429,7 @@ export default function RideHistory({ user = { fullName: "John Doe" }, role = "r
                             <li><strong>End Station:</strong> {selectedRide.endStation}</li>
                             <li><strong>Duration:</strong> {selectedRide.duration} min</li>
                             <li><strong>Bike Type:</strong> {selectedRide.bikeType}</li>
+                            <li><strong>Bike ID:</strong> {selectedRide.bikeID || "—"}</li>
                             <li><strong>Base Fee:</strong> ${selectedRide.baseFee}</li>
                             <li><strong>Per Minute Rate:</strong> ${selectedRide.perMinuteRate}</li>
                             {selectedRide.eBikeSurcharge > 0 && (

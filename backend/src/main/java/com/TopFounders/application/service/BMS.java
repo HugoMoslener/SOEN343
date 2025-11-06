@@ -134,7 +134,7 @@ public class BMS implements Subscriber {
         Rider rider = riderService.getRiderDetails(reservation.getRider().getUsername());
         if((reservation.getRider().getUsername().equals(username)) & (reservation.getState() == ReservationState.PENDING) & (dock.getState() == DockState.OCCUPIED) & (station.getOccupancyStatus() != StationOccupancyState.EMPTY) ){
 
-            Trip trip = reservation.createTrip(station.getAddress(),new Payment(),new PricingPlan());
+            Trip trip = reservation.createTrip(station.getName(),new Payment(),new PricingPlan());
             reservation.setState(ReservationState.CONFIRMED);
 
             bike.setBikeState(bike.getState());
@@ -186,7 +186,7 @@ public class BMS implements Subscriber {
 
             payment.setPaymentMethod(rider.getPaymentInformation());
             trip.setPayment(payment);
-            trip.setArrival(station.getAddress());
+            trip.setArrival(station.getName());
             trip.setEndTime(LocalTime.now().toString());
              PricingPlan pricingPlan = trip.getPricingPlan();
 

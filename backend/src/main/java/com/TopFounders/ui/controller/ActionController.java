@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Map;
 
 @SpringBootApplication
 @RestController
@@ -171,9 +172,9 @@ public class ActionController {
     }
 
     @PostMapping("/getAllTripsForUser")
-    public ArrayList<Trip> getAllTripsForUser(@RequestBody String username ){
+    public ArrayList<Trip> getAllTripsForUser(@RequestBody Map<String,String> body) throws Exception {
         try{
-            System.out.println("Post request reached here");
+            String username = body.get("username");
             ArrayList<Trip> trips = BMS.getInstance().getAllTripsForRiderOrOperator(username);
             return trips;
         }
