@@ -2,7 +2,7 @@ import {useState, useEffect} from "react";
 import { collection, onSnapshot, query } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig"; // adjust to your Firebase config path
 
-export default function RideHistory({user = JSON.stringify({ username: localStorage.getItem("fullName") }), role = "rider"}) {
+export default function RideHistory({user = { username: localStorage.getItem("fullName"), fullName: localStorage.getItem("fullName") }, role = "rider"}){
     const [search, setSearch] = useState("");
     const [bikeType, setBikeType] = useState("");
     const [bikeID, setBikeID] = useState("");
@@ -29,6 +29,8 @@ export default function RideHistory({user = JSON.stringify({ username: localStor
             })
             .then(data => {
                 const normalized = (Array.isArray(data) ? data : []).map(t => {
+                    console.log("Fetched tripId values:", t.tripId, t.tripID, t.id);
+
                     const rider = t?.reservation?.rider;
                     const bikeTypeRaw = t?.reservation?.bike?.type;
                     const date = t?.reservation?.date || null;
@@ -72,9 +74,15 @@ export default function RideHistory({user = JSON.stringify({ username: localStor
                         timeline,
                         baseFee: Number(t?.pricingPlan?.baseFee ?? 0),
                         perMinuteRate: Number(t?.pricingPlan?.ratePerMinute ?? 0),
-                        eBikeSurcharge: bikeTypeRaw?.toUpperCase() === "E_BIKE" ? 5 : 0,
+                        eBikeSurcharge:
+                            bikeTypeRaw?.toUpperCase() === "E_BIKE" &&
+                            t?.pricingPlan?.planName?.toLowerCase() === "base plan"
+                                ? 20
+                                : 0,
                     };
                 });
+
+                console.log("Normalized trips:", normalized);
 
                 const completedTrips = normalized.filter(t => t.endTime); // only those that have ended
                 const sorted = normalized.sort((a, b) => new Date(b.endTime) - new Date(a.endTime));
@@ -153,7 +161,11 @@ export default function RideHistory({user = JSON.stringify({ username: localStor
                     timeline,
                     baseFee: Number(t?.pricingPlan?.baseFee ?? 0),
                     perMinuteRate: Number(t?.pricingPlan?.ratePerMinute ?? 0),
-                    eBikeSurcharge: bikeTypeRaw?.toUpperCase() === "E_BIKE" ? 5 : 0,
+                    eBikeSurcharge:
+                        bikeTypeRaw?.toUpperCase() === "E_BIKE" &&
+                        t?.pricingPlan?.planName?.toLowerCase() === "base plan"
+                            ? 20
+                            : 0,
                 });
             });
 
@@ -202,14 +214,20 @@ export default function RideHistory({user = JSON.stringify({ username: localStor
 
         // Filter by rider (if applicable)
         if (role === "rider") {
-            results = results.filter(r => r.rider === user.fullName);
+            const riderName = user.fullName || user.username || localStorage.getItem("fullName");
+            results = results.filter(r => r.rider === riderName);
         }
 
-        // Search by trip ID (partial match allowed)
+        // Search by trip ID (partial match allowed — supports both tripId and tripID)
         if (search.trim()) {
-            results = results.filter(r =>
-                r.tripId.toLowerCase().includes(search.trim().toLowerCase())
-            );
+            const cleanSearch = search.trim();
+            console.log("Searching for Trip ID:", cleanSearch);
+            results = results.filter(r => {
+                const id = r.tripID ?? r.tripId ?? "";
+                const match = id.includes(cleanSearch);
+                if (match) console.log("Matched trip:", id);
+                return match;
+            });
         }
 
         // Filter by bike type
