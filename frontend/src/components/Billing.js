@@ -28,7 +28,7 @@ export default function Billing() {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: localStorage.getItem("username"),
+            body: JSON.stringify({ username: localStorage.getItem("username") }),
         })
             .then((r) => {
                 if (!r.ok) throw new Error("Network response was not ok");

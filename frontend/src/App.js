@@ -139,12 +139,13 @@ function App() {
                     >
                         Billing
                     </Link>)}
+                    {(localStorage.getItem("role") === "rider" || localStorage.getItem("role") === "operator") && (
                     <Link
                         to="/ridehistory"
                         className="text-slate-900 hover:text-blue-600 font-medium transition-colors duration-200"
                     >
                         Ride History
-                    </Link>
+                    </Link>)}
                     {user && (
                         <div className="text-slate-700 hover:text-blue-600 font-medium transition-colors duration-200">
                             <button
