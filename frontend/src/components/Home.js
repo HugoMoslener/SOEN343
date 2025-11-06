@@ -790,7 +790,7 @@ export default function Home() {
                         </div>
                         <div>
                             <p><span className="font-medium">E-Bike Surcharge Fee:</span>
-                                {tripSummary.pricingPlan?.planName === "Base plan"
+                                {(tripSummary.reservation?.bike?.type === "E_BIKE" && tripSummary.pricingPlan?.planName === "Base plan")
                                     ? "20$"
                                     : "N/A"}
                             </p>
