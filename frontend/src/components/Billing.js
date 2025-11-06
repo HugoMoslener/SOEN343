@@ -3,6 +3,45 @@
 import { useState,useEffect  } from "react";
 import { useNavigate } from "react-router-dom";
 
+const mockCards = [
+    {
+        type: "Visa",
+        cardNumber: "4111111111111111",
+        expiry: "12/25",
+        cvv: "123",
+        name: "John Doe",
+    },
+    {
+        type: "Visa",
+        cardNumber: "4111111111111112",
+        expiry: "12/26",
+        cvv: "321",
+        name: "Jane Doe",
+    },
+    {
+        type: "MasterCard",
+        cardNumber: "5500000000000004",
+        expiry: "11/26",
+        cvv: "456",
+        name: "Jane Smith",
+    },
+    {
+        type: "American Express",
+        cardNumber: "340000000000009",
+        expiry: "10/25",
+        cvv: "789",
+        name: "Alice Johnson",
+    },
+    {
+        type: "Discover",
+        cardNumber: "6011000000000004",
+        expiry: "09/26",
+        cvv: "321",
+        name: "Bob Brown",
+    },
+];
+
+
 export default function Billing() {
     const [openIndex, setOpenIndex] = useState(null);
     const [tripSummary,setTripSummary] = useState(null);
@@ -11,6 +50,8 @@ export default function Billing() {
     const [isReceipt,setIsReceipt] = useState(false);
     const [showPayment, setShowPayment] = useState(false);
     const navigate = useNavigate();
+    const [billingSummaries, setBillingSummaries] = useState([]);
+    const [showBilling, setShowBilling] = useState(false);
     const [paymentData, setPaymentData] = useState({
         cardNumber: "",
         expiry: "",
@@ -28,13 +69,29 @@ export default function Billing() {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: localStorage.getItem("username"),
+            body: localStorage.getItem("username") ,
         })
             .then((r) => {
                 if (!r.ok) throw new Error("Network response was not ok");
                 return r.json();
             })
             .then((data) => {
+                const summaries = data.map((trip) => ({
+                    tripID: trip.tripID,
+                    startTime: trip.startTime,
+                    endTime: trip.endTime,
+                    bikeID: trip.reservation?.bike?.bikeID,
+                    origin: trip.origin,
+                    arrival: trip.arrival,
+                    charges: {
+                        baseFee: trip.pricingPlan?.baseFee,
+                        ratePerMinute: trip.pricingPlan?.ratePerMinute,
+                        amountPaid: trip.payment?.amount,
+                        paymentDate: trip.payment?.paidDate,
+                        paymentMethod: trip.payment?.paymentMethod,
+                    },
+                }));
+                setBillingSummaries(data);
                 console.log("Received stations:", data);
 
             })
@@ -52,10 +109,11 @@ export default function Billing() {
         }
     }, []);
 
-    const handlePayment =  () => {
+    const handlePayment =  async () => {
+
 
         try {
-            const res =  fetch("/api/action/confirmPayment", {
+            const res =  await fetch("/api/action/confirmPayment", {
                 method: "POST",
                 headers: {
                     "Content-Type": "text/plain", // send a plain string
@@ -63,10 +121,20 @@ export default function Billing() {
                 body: String(tripSummary.tripID), // your string data
             });
 
-            const text =  res.text();
-
+            const text = await res.text();
+            localStorage.setItem("IsTripSummary","false");
+            localStorage.setItem("TripSummary", "");
+            setShowPayment(false);
+            setIsTripSummary(false);
+            setTripSummary(null);
+            localStorage.setItem("IsTripSummary","false");
+            localStorage.setItem("IsTripSummary", "");
+            localStorage.setItem("TripSummary", "");
+            alert("Payment successfully confirmed");
+            fetchStations();
 
         } catch (error) {
+            alert("Payment Unsuccessful");
             console.error("Payment request failed:", error);
         }
     };
@@ -112,17 +180,25 @@ export default function Billing() {
 
     const handlePaymentSubmit =  async (e) => {
         e.preventDefault();
-        localStorage.setItem("IsTripSummary","false");
-        localStorage.setItem("TripSummary", "");
-        handlePayment();
-        setShowPayment(false);
-        setIsTripSummary(false);
-        setTripSummary(null);
-        localStorage.setItem("IsTripSummary","false");
-        localStorage.setItem("IsTripSummary", "");
-        localStorage.setItem("TripSummary", "");
 
-        alert("Payment successfully confirmed");
+        const matchedCard = mockCards.find(
+            (card) =>
+                card.type.toLowerCase() === localStorage.getItem("paymentInformation").toLowerCase() &&
+                card.cardNumber === paymentData.cardNumber.replace(/\s+/g, "") &&
+                card.expiry === paymentData.expiry.replace(/\s+/g, "") &&
+                card.cvv === paymentData.cvv.replace(/\s+/g, "") &&
+                card.name.toLowerCase().replace(/\s+/g, "") === paymentData.name.toLowerCase().replace(/\s+/g, "")
+        );
+
+        if (!matchedCard) {
+            alert("Payment failed: Invalid card information!");
+            return; // Stop further processing
+        }
+
+        await handlePayment();
+
+
+
         setIsReceipt(true);
 
     };
@@ -413,14 +489,116 @@ export default function Billing() {
                     </button>
                 </div>
             </div>)}
-            <div className="flex justify-center mt-10">
-                <button
-                    onClick={() => navigate("/ridehistory")}
-                    className="flex flex-col items-center justify-center w-64 h-32 bg-gradient-to-b from-blue-500 to-blue-700 text-white rounded-xl shadow-lg hover:scale-105 transform transition duration-300"
-                >
-                    <span className="text-lg font-bold">Go to Ride History</span>
-                </button>
+            <div className="mt-10 space-y-8">
+                <div className="flex flex-col items-center">
+                    <h2 className="text-2xl font-semibold text-gray-800 text-center mb-4">
+                        Billing Overview
+                    </h2>
+                    <div className="flex justify-center mt-10">
+                        <button
+                            onClick={() => navigate("/ridehistory")}
+                            className="flex flex-col items-center justify-center w-64 h-32 bg-gradient-to-b from-blue-500 to-blue-700 text-white rounded-xl shadow-lg hover:scale-105 transform transition duration-300"
+                        >
+                            <span className="text-lg font-bold">Go to Ride History</span>
+                        </button>
+                    </div>
+                    <br/>
+                    <button
+                        onClick={() => setShowBilling((prev) => !prev)}
+                        className={`px-6 py-2 rounded-lg font-medium text-white transition ${
+                            showBilling
+                                ? "bg-red-500 hover:bg-red-600"
+                                : "bg-blue-500 hover:bg-blue-600"
+                        }`}
+                    >
+                        {showBilling ? "Hide Billing List" : "Show Billing List"}
+                    </button>
+                </div>
+
+                {showBilling && (
+                    <div className="space-y-8 mt-6">
+                        {billingSummaries.length === 0 ? (
+                            <p className="text-center text-gray-500 mt-6">
+                                No billing summaries found.
+                            </p>
+                        ) : (
+                            billingSummaries
+                                .filter((trip) => trip.payment?.paidDate !== null) // ✅ filter first
+                                .map((trip, index) => (
+                                    <div
+                                        key={trip.tripID}
+                                        className="bg-white border border-gray-200 rounded-2xl shadow-md p-6 w-full max-w-4xl mx-auto transition hover:shadow-lg hover:-translate-y-1 duration-300 animate-fade-in"
+                                        style={{ animationDelay: `${index * 0.1}s` }}
+                                    >
+                                        {/* Trip Header */}
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h3 className="text-xl font-semibold text-gray-800">
+                                                Trip #{index + 1}
+                                            </h3>
+                                            <p className="text-sm text-gray-500">Trip ID: {trip.tripID}</p>
+                                        </div>
+
+                                        {/* Base Information */}
+                                        <div className="border-t border-gray-200 pt-4 mt-4">
+                                            <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                                                Base Information
+                                            </h3>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-gray-700 text-sm mb-6">
+                                                <p><span className="font-medium">Start Time:</span> {trip.startTime || "N/A"}</p>
+                                                <p><span className="font-medium">End Time:</span> {trip.endTime || "N/A"}</p>
+                                                <p><span className="font-medium">Reservation Date:</span> {trip.reservation?.date || "N/A"}</p>
+                                                <p><span className="font-medium">Origin:</span> {trip.origin || "N/A"}</p>
+                                                <p><span className="font-medium">Arrival:</span> {trip.arrival || "N/A"}</p>
+                                                <p><span className="font-medium">Reservation State:</span> {trip.reservation?.state || "N/A"}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Bike Information */}
+                                        <div className="border-t border-gray-200 pt-4 mt-4">
+                                            <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                                                Bike Information
+                                            </h3>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 text-sm mb-6">
+                                                <p><span className="font-medium">Bike ID:</span> {trip.reservation?.bike?.bikeID || "N/A"}</p>
+                                                <p><span className="font-medium">Type:</span> {trip.reservation?.bike?.type || "N/A"}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Pricing Plan */}
+                                        <div className="border-t border-gray-200 pt-4 mt-4">
+                                            <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                                                Pricing Plan
+                                            </h3>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 text-sm mb-6">
+                                                <p><span className="font-medium">Plan Name:</span> {trip.pricingPlan?.planName || "N/A"}</p>
+                                                <p><span className="font-medium">Base Fee:</span> {trip.pricingPlan?.baseFee ? `$${trip.pricingPlan.baseFee}` : "N/A"}</p>
+                                                <p><span className="font-medium">Rate/Minute:</span> {trip.pricingPlan?.ratePerMinute ? `$${trip.pricingPlan.ratePerMinute}` : "N/A"}</p>
+                                                <p><span className="font-medium">E-Bike Fee:</span> {trip.reservation?.bike?.type === "E_BIKE" ? "$20" : "N/A"}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Payment Information */}
+                                        <div className="border-t border-gray-200 pt-4 mt-4">
+                                            <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                                                Payment Information
+                                            </h3>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 text-sm">
+                                                <p><span className="font-medium">Payment Method:</span> {trip.payment?.paymentMethod || "N/A"}</p>
+                                                <p><span className="font-medium">Paid Date:</span> {trip.payment?.paidDate || "N/A"}</p>
+                                                <p><span className="font-medium">Amount:</span> {trip.payment?.amount ? `$${trip.payment.amount.toFixed(2)}` : "N/A"}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                        )}
+                    </div>
+                )}
+
             </div>
+
+
+
+
         </div>
     );
 }
