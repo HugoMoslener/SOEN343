@@ -378,6 +378,17 @@ export default function Billing() {
                     <h3 className="text-lg font-semibold text-gray-800 mb-2">Payment Information</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 text-sm">
                         <div>
+                            <p><span className="font-medium">Name of the Client: </span>
+                                {localStorage.getItem("fullName")}
+                            </p>
+                        </div>
+                        <div>
+                            <p><span className="font-medium">Billing Address: </span>
+                                {localStorage.getItem("address")}
+                            </p>
+                        </div>
+
+                        <div>
                             <p><span className="font-medium">Payment Method:</span> {paymentReceipt.payment?.paymentMethod || "N/A"}</p>
                         </div>
                         <div>
@@ -390,6 +401,7 @@ export default function Billing() {
                                     : "N/A"}
                             </p>
                         </div>
+
                     </div>
                 </div>
                 <br/>

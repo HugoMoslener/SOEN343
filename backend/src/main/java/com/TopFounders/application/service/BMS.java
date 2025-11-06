@@ -1,5 +1,8 @@
 package com.TopFounders.application.service;
 
+import com.TopFounders.domain.Strategy.BasicPlanStrategy;
+import com.TopFounders.domain.Strategy.PremiumPlanStrategy;
+import com.TopFounders.domain.Strategy.PricingStrategy;
 import com.TopFounders.domain.factory.RiderCreator;
 import com.TopFounders.domain.model.*;
 import com.TopFounders.domain.observer.Subscriber;
@@ -23,6 +26,7 @@ public class BMS implements Subscriber {
     private final RiderService riderService  = new RiderService();
     private final TripService tripService = new TripService();
     private final UserService userService = new UserService();
+    private PricingStrategy pricingStrategy;
 
     private BMS(){}
 
@@ -32,6 +36,10 @@ public class BMS implements Subscriber {
         }
         return instance;
     }
+
+    public void setPricingStrategy(PricingStrategy pricingStrategy){this.pricingStrategy = pricingStrategy;}
+    public double doPricingStrategy(Trip trip){return pricingStrategy.calculateTotal(trip);};
+
 
     public String saveRiderData(String username, String paymentInformation, String email, String fullName, String address, String role) throws ExecutionException, InterruptedException {
         RiderCreator factory = new RiderCreator();
@@ -154,6 +162,12 @@ public class BMS implements Subscriber {
     }
 
     public Trip dockBike(String username, String reservationID, String dockID, String planID) throws ExecutionException, InterruptedException {
+        if(planID.equals("1")){
+            setPricingStrategy(new BasicPlanStrategy());
+        }
+        else if(planID.equals("2") || planID.equals("3")) {
+            setPricingStrategy(new PremiumPlanStrategy());
+        }
 
         Reservation reservation = reservationService.getReservationDetails(reservationID);
         Trip trip = tripService.getTripDetails(reservation.getTripID());
@@ -181,43 +195,17 @@ public class BMS implements Subscriber {
            System.out.println(pricingPlan.getPlanID());
            System.out.println(pricingPlan.getPlanName());
 
-
-            if(planID.equals("1")){
-                System.out.println(calculateTotalAmount(trip.getStartTime(), trip.getEndTime(), pricingPlan.getRatePerMinute()));
-                if(trip.getReservation().getBike().getType() == BikeType.E_BIKE){
-                    payment.setAmount((Double) ( 20 +pricingPlan.getBaseFee() + calculateTotalAmount(trip.getStartTime(), trip.getEndTime(), pricingPlan.getRatePerMinute())));
-
-                }
-                else {
-                    payment.setAmount((Double) (pricingPlan.getBaseFee() + calculateTotalAmount(trip.getStartTime(), trip.getEndTime(), pricingPlan.getRatePerMinute())));
-                }}
-            else if (planID.equals("2") ||planID.equals("3")){
-                payment.setAmount((Double)(pricingPlan.getBaseFee() + calculateTotalAmount(trip.getStartTime(),trip.getEndTime(),pricingPlan.getRatePerMinute())));
+            trip.setPricingPlan(pricingPlan);
+            trip.setRatePerMinute((Double)(pricingPlan.getRatePerMinute()));
+            if(planID.equals("1")) {
+                System.out.println(pricingStrategy.calculateTotal(trip));
+                payment.setAmount(pricingStrategy.calculateTotal(trip));
+            }
+            else if (planID.equals("2") || planID.equals("3")){
+                System.out.println(pricingStrategy.calculateTotal(trip));
+                payment.setAmount(pricingStrategy.calculateTotal(trip));
             }
 
-            trip.setRatePerMinute((Double)(pricingPlan.getRatePerMinute()));
-
-
-            trip.setPricingPlan(pricingPlan);
-
-
-            if(planID.equals("1")){
-                System.out.println(calculateTotalAmount(trip.getStartTime(), trip.getEndTime(), pricingPlan.getRatePerMinute()));
-                if(trip.getReservation().getBike().getType() == BikeType.E_BIKE){
-                    payment.setAmount((Double) ( 20 +pricingPlan.getBaseFee() + calculateTotalAmount(trip.getStartTime(), trip.getEndTime(), pricingPlan.getRatePerMinute())));
-
-                }
-                else {
-                    payment.setAmount((Double) (pricingPlan.getBaseFee() + calculateTotalAmount(trip.getStartTime(), trip.getEndTime(), pricingPlan.getRatePerMinute())));
-                }}
-            else if (planID.equals("2") ||planID.equals("3")){
-                payment.setAmount((Double)(pricingPlan.getBaseFee() + calculateTotalAmount(trip.getStartTime(),trip.getEndTime(),pricingPlan.getRatePerMinute())));
-            }
-
-            trip.setRatePerMinute((Double)(pricingPlan.getRatePerMinute()));
-
-
-            trip.setPricingPlan(pricingPlan);
 
             // update local bike
             bike.setBikeState(bike.getState());
@@ -243,24 +231,6 @@ public class BMS implements Subscriber {
         }
 
         return null;
-    }
-    public  double calculateTotalAmount(String startTime, String endTime, Double ratePerMinute) {
-        if (ratePerMinute == null) {
-            System.out.println("Rate per minute not available.");
-            return 0.0;
-        }
-
-        LocalTime start = LocalTime.parse(startTime);
-        LocalTime end = LocalTime.parse(endTime);
-
-        if (end.isBefore(start)) {
-            end = end.plusHours(24);
-        }
-
-        Duration duration = Duration.between(start, end);
-        double minutes = duration.toMillis() / (1000.0 * 60);
-
-        return minutes * ratePerMinute;
     }
 
     public String paymentInterface(String tripID) throws ExecutionException, InterruptedException{
@@ -367,19 +337,51 @@ public class BMS implements Subscriber {
         System.out.println(bikeArrayList);
          System.out.println("hello");
         for(Dock dock : dockArrayList){
+            if (dock == null) {
+                System.out.println("⚠️ Skipping null dock entry");
+                continue;
+            }
             dock.setState(DockState.EMPTY);
             dock.setBike(null);
+            if (dock.getStationID() == null || dock.getStationID().isEmpty()) {
+                System.out.println("⚠️ Dock " + dock.getDockID() + " has no associated station ID");
+                continue;
+            }
             Station station1 =  stationService.getStationDetails(dock.getStationID());
+            if (station1 == null) {
+                System.out.println("⚠️ Station not found for station ID: " + dock.getStationID() );
+                continue;
+            }
+
             station1.updateADock(dock);
+            dockService.updateDockDetails(dock);
             stationService.updateStationDetails(station1);
         }
 
+
         for(Bike bike : bikeArrayList){
+            if (bike == null) {
+                System.out.println("⚠️ Skipping null bike entry");
+                continue;
+            }
+
             bike.returnBike(); // sets the state to available
             bike.setDockID(bike.getBikeID());
 
-            Dock dock = dockService.getDockDetails(bike.getDockID());
+            Dock dock = dockService.getDockDetails(bike.getBikeID());
+            if (dock == null) {
+                System.out.println("⚠️ No dock found for bike ID: " + bike.getBikeID());
+                continue;
+            }
+            if (dock.getStationID() == null || dock.getStationID().isEmpty()) {
+                System.out.println("⚠️ Dock " + dock.getDockID() + " has no associated station ID");
+                continue;
+            }
             Station station = stationService.getStationDetails(dock.getStationID());
+            if (station == null) {
+                System.out.println("⚠️ Station not found for station ID: " + dock.getStationID());
+                continue;
+            }
             station.setOperationalState(StationOperationalState.ACTIVE);
             station.getOccupancyStatus();
             dock.setBike(bike);
@@ -389,6 +391,7 @@ public class BMS implements Subscriber {
             dockService.updateDockDetails(dock);
             bikeService.updateBikeDetails(bike);
         }
+
         return "Successful";
     }
 

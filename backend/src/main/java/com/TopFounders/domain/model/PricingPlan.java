@@ -13,13 +13,13 @@ public class PricingPlan {
 
     public void setPlanInfo(String  plansID) {
         if(plansID.equals("1")){
-            setPrincingPlan1();
+            setPricingPlan1();
         }
         else if ( plansID.equals("2")){
-            setPrincingPlan2();
+            setPricingPlan2();
         }
         else if ( plansID.equals("3")){
-            setPrincingPlan3();
+            setPricingPlan3();
         }
     }
 
@@ -34,19 +34,19 @@ public class PricingPlan {
     public Double getRatePerMinute() {return ratePerMinute;}
     public void setRatePerMinute(Double ratePerMinute) {this.ratePerMinute = ratePerMinute;}
 
-    public void setPrincingPlan1(){
+    public void setPricingPlan1(){
         this.planID = "1";
         this.planName = "Base plan";
         this.ratePerMinute = 10.0;
         this.baseFee = 15.0;
     }
-    public void setPrincingPlan2(){
+    public void setPricingPlan2(){
         this.planID = "2";
         this.planName = "Premium plan";
         this.ratePerMinute = 4.0;
         this.baseFee = 30.0;
     }
-    public void setPrincingPlan3(){
+    public void setPricingPlan3(){
         this.planID = "2";
         this.planName = "Premium plan pro";
         this.ratePerMinute = 2.0;
