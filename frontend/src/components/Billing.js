@@ -523,7 +523,8 @@ export default function Billing() {
                             </p>
                         ) : (
                             billingSummaries
-                                .filter((trip) => trip.payment?.paidDate !== null) // ✅ filter first
+                                .filter((trip) => trip.payment?.paidDate !== null)
+                                .sort((a, b) => new Date(b.payment.paidDate) - new Date(a.payment.paidDate))// ✅ filter first
                                 .map((trip, index) => (
                                     <div
                                         key={trip.tripID}
