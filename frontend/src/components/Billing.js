@@ -274,7 +274,7 @@ export default function Billing() {
                         </div>
                         <div>
                             <p><span className="font-medium">E-Bike Surcharge Fee:</span>
-                                {tripSummary.pricingPlan?.planName === "Base plan"
+                                {(tripSummary.reservation?.bike?.type === "E_BIKE" && tripSummary.pricingPlan?.planName === "Base plan")
                                     ? "20$"
                                     : "N/A"}
                             </p>
@@ -441,7 +441,7 @@ export default function Billing() {
                         </div>
                         <div>
                             <p><span className="font-medium">E-Bike Surcharge Fee:</span>
-                                {paymentReceipt.pricingPlan?.planName === "Base plan"
+                                {(paymentReceipt.reservation?.bike?.type === "E_BIKE" && paymentReceipt.pricingPlan?.planName === "Base plan")
                                     ? "20$"
                                     : "N/A"}
                             </p>
@@ -574,7 +574,7 @@ export default function Billing() {
                                                 <p><span className="font-medium">Plan Name:</span> {trip.pricingPlan?.planName || "N/A"}</p>
                                                 <p><span className="font-medium">Base Fee:</span> {trip.pricingPlan?.baseFee ? `$${trip.pricingPlan.baseFee}` : "N/A"}</p>
                                                 <p><span className="font-medium">Rate/Minute:</span> {trip.pricingPlan?.ratePerMinute ? `$${trip.pricingPlan.ratePerMinute}` : "N/A"}</p>
-                                                <p><span className="font-medium">E-Bike Fee:</span> {trip.reservation?.bike?.type === "E_BIKE" ? "$20" : "N/A"}</p>
+                                                <p><span className="font-medium">E-Bike Fee:</span> {(trip.reservation?.bike?.type === "E_BIKE" && trip.pricingPlan?.planName === "Base plan") ? "$20" : "N/A"}</p>
                                             </div>
                                         </div>
 
