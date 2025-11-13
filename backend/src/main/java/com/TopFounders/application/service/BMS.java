@@ -8,12 +8,11 @@ import com.TopFounders.domain.model.*;
 import com.TopFounders.domain.observer.Subscriber;
 
 import java.sql.Time;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Date;
+import java.time.*;
+import java.time.format.DateTimeParseException;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 public class BMS implements Subscriber {
 
@@ -26,6 +25,7 @@ public class BMS implements Subscriber {
     private final RiderService riderService  = new RiderService();
     private final TripService tripService = new TripService();
     private final UserService userService = new UserService();
+    private final LinkerDataService linkerDataService = new LinkerDataService();
     private PricingStrategy pricingStrategy;
 
     private BMS(){}
@@ -38,7 +38,7 @@ public class BMS implements Subscriber {
     }
 
     public void setPricingStrategy(PricingStrategy pricingStrategy){this.pricingStrategy = pricingStrategy;}
-    public double doPricingStrategy(Trip trip){return pricingStrategy.calculateTotal(trip);};
+    public double doPricingStrategy(Trip trip) throws ExecutionException, InterruptedException {return pricingStrategy.calculateTotal(trip);};
 
 
     public String saveRiderData(String username, String paymentInformation, String email, String fullName, String address, String role) throws ExecutionException, InterruptedException {
@@ -188,7 +188,7 @@ public class BMS implements Subscriber {
             trip.setPayment(payment);
             trip.setArrival(station.getName());
             trip.setEndTime(LocalTime.now().toString());
-             PricingPlan pricingPlan = trip.getPricingPlan();
+            PricingPlan pricingPlan = trip.getPricingPlan();
 
             pricingPlan.setPlanInfo(planID);
 
@@ -198,12 +198,29 @@ public class BMS implements Subscriber {
             trip.setPricingPlan(pricingPlan);
             trip.setRatePerMinute((Double)(pricingPlan.getRatePerMinute()));
             if(planID.equals("1")) {
-                System.out.println(pricingStrategy.calculateTotal(trip));
                 payment.setAmount(pricingStrategy.calculateTotal(trip));
             }
             else if (planID.equals("2") || planID.equals("3")){
-                System.out.println(pricingStrategy.calculateTotal(trip));
                 payment.setAmount(pricingStrategy.calculateTotal(trip));
+            }
+
+            if(((((double)station.getBikesAvailable())/((double)station.getCapacity()))*100 )< 25.0){
+                Map<String, Object> data = linkerDataService.getFlexDollar(rider.getUsername());
+                double flexdollar = 0.0;
+                System.out.println("Avialability"+(double)((station.getBikesAvailable()) ));
+                System.out.println("Capacity"+(double)((station.getCapacity()) ));
+
+                if (data == null) {
+                    System.out.println("User not found");
+                } else {
+                    Object value = data.get("flexdollars");
+                    if (value instanceof Number) {
+                        flexdollar = ((Number) value).doubleValue();
+                        System.out.println("flexdollar remaining" + flexdollar);
+                        flexdollar = flexdollar + 5;
+                        linkerDataService.updateFlexDollar(rider.getUsername(), flexdollar);
+                    }
+                }
             }
 
 
@@ -416,6 +433,178 @@ public class BMS implements Subscriber {
             return trips;
         }
         return null;
+    }
+
+    public String setRiderTier(String username) throws ExecutionException, InterruptedException {
+        // ✅ Initialize trips and reservations as ArrayLists safely
+        System.out.println(username);
+        ArrayList<Trip> trips = Optional.ofNullable(tripService.getAllTrip()).orElseGet(ArrayList::new);
+        ArrayList<Reservation> reservations = Optional.ofNullable(reservationService.getAllReservations()).orElseGet(ArrayList::new);
+
+        System.out.println("trips size: " + trips.size());
+        System.out.println("reservations size: " + reservations.size());
+
+// ✅ Filter trips and reservations for the specific rider
+        ArrayList<Trip> riderTrips = trips.stream()
+                .filter(t -> t != null
+                        && t.getReservation() != null
+                        && t.getReservation().getRider() != null
+                        && t.getReservation().getRider().getUsername().equals(username))
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        System.out.println("riderTrips size: " + riderTrips.size());
+
+        ArrayList<Reservation> riderReservations = reservations.stream()
+                .filter(r -> r != null
+                        && r.getRider() != null
+                        && r.getRider().getUsername().equals(username))
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        System.out.println("riderReservations size: " + riderReservations.size());
+        System.out.println("Reached part 1");
+
+        LocalDate now = LocalDate.now();
+
+// ✅ Bronze Tier Rules
+        boolean noMissedReservations = riderReservations.stream()
+                .filter(r -> r.getDate() != null)
+                .filter(r -> LocalDate.parse(r.getDate()).isAfter(now.minusYears(1)))
+                .noneMatch(r -> "CANCELLED".equals(r.getState().toString()));
+
+        System.out.println("noMissedReservations: " + noMissedReservations);
+
+        boolean allBikesReturned = riderTrips.stream()
+                .allMatch(r -> r.getArrival() != null);
+
+        System.out.println("allBikesReturned: " + allBikesReturned);
+
+        long tripCountLastYear = riderTrips.stream()
+                .filter(t -> t.getReservation() != null && t.getReservation().getDate() != null)
+                .filter(t -> {
+                    try {
+                        LocalDate tripDate = LocalDate.parse(t.getReservation().getDate());
+                        return tripDate.isAfter(now.minusYears(1));
+                    } catch (DateTimeParseException e) {
+                        return false;
+                    }
+                })
+                .count();
+
+        System.out.println("tripCountLastYear: " + tripCountLastYear);
+
+        boolean surpassed10Trips = tripCountLastYear > 10;
+        System.out.println("surpassed10Trips: " + surpassed10Trips);
+
+        boolean bronzeEligible = noMissedReservations && allBikesReturned && surpassed10Trips;
+        System.out.println("bronzeEligible: " + bronzeEligible);
+
+        System.out.println("Reached Bronze Tier");
+        if (!bronzeEligible) return "NONE";
+// ✅ Silver Tier Rules
+        boolean coversBronze = bronzeEligible;
+
+        long successfulReservations = riderReservations.stream()
+                .filter(r -> r != null && r.getDate() != null && r.getState() != null)
+                .filter(r -> {
+                    try {
+                        LocalDate reservationDate = LocalDate.parse(r.getDate());
+                        return reservationDate.isAfter(now.minusYears(1));
+                    } catch (DateTimeParseException e) {
+                        return false;
+                    }
+                })
+                .filter(r -> "CONFIRMED".equals(r.getState().toString()))
+                .count();
+
+        System.out.println("successfulReservations: " + successfulReservations);
+
+        boolean hasAtLeast5SuccessfulReservations = successfulReservations >= 5;
+        System.out.println("hasAtLeast5SuccessfulReservations: " + hasAtLeast5SuccessfulReservations);
+
+        YearMonth thisMonth = YearMonth.from(now);
+        YearMonth lastMonth = thisMonth.minusMonths(1);
+        YearMonth twoMonthsAgo = thisMonth.minusMonths(2);
+
+        List<YearMonth> last3Months = List.of(thisMonth, lastMonth, twoMonthsAgo);
+
+// Group trips by YearMonth (safely ignoring null trips or invalid dates)
+        Map<YearMonth, Long> tripsByMonth = riderTrips.stream()
+                .filter(t -> t != null && t.getReservation() != null && t.getReservation().getDate() != null)
+                .map(t -> {
+                    try {
+                        return YearMonth.from(LocalDate.parse(t.getReservation().getDate()));
+                    } catch (DateTimeParseException e) {
+                        return null; // skip invalid dates
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(
+                        ym -> ym,
+                        Collectors.counting()
+                ));
+
+// Check that in each of the last three months there are at least 5 trips
+        boolean surpassed5TripsPerMonthForLast3 = last3Months.stream()
+                .allMatch(month -> tripsByMonth.getOrDefault(month, 0L) >= 5);
+
+        System.out.println("surpassed5TripsPerMonthForLast3: " + surpassed5TripsPerMonthForLast3);
+
+        boolean silverEligible = coversBronze && hasAtLeast5SuccessfulReservations && surpassed5TripsPerMonthForLast3;
+        System.out.println("silverEligible: " + silverEligible);
+        System.out.println("Reached Silver Tier");
+
+        if (!silverEligible) return "BRONZE";
+// ✅ Gold Tier Rules
+        boolean coversSilver = silverEligible;
+
+        LocalDate threeMonthsAgo = now.minusMonths(3);
+
+        Map<LocalDate, Long> tripsByWeek = riderTrips.stream()
+                .filter(Objects::nonNull)
+                .map(t -> {
+                    try {
+                        if (t.getReservation() == null || t.getReservation().getDate() == null)
+                            return null;
+                        return LocalDate.parse(t.getReservation().getDate());
+                    } catch (DateTimeParseException e) {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .filter(date -> !date.isBefore(threeMonthsAgo))
+                .collect(Collectors.groupingBy(
+                        date -> date.with(DayOfWeek.MONDAY),
+                        Collectors.counting()
+                ));
+
+        boolean surpassed5TripsEveryWeek = true;
+        LocalDate startOfThisWeek = now.with(DayOfWeek.MONDAY);
+
+        for (LocalDate weekStart = startOfThisWeek;
+             !weekStart.isBefore(threeMonthsAgo);
+             weekStart = weekStart.minusWeeks(1)) {
+
+            long count = tripsByWeek.getOrDefault(weekStart, 0L);
+
+            if (count < 5) {
+                surpassed5TripsEveryWeek = false;
+                System.out.println("❌ Not enough trips in week starting " + weekStart + " (only " + count + ")");
+                break;
+            } else {
+                System.out.println("✅ Week " + weekStart + " has " + count + " trips");
+            }
+        }
+
+        System.out.println("Reached Gold Tier");
+
+// ✅ Final Tier Decision
+        boolean goldEligible = silverEligible && surpassed5TripsEveryWeek;
+
+        if (goldEligible) return "GOLD";
+        else if (silverEligible) return "SILVER";
+        else if (bronzeEligible) return "BRONZE";
+        else return "NONE";
+
     }
 
 

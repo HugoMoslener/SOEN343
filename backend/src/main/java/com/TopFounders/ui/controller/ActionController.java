@@ -5,7 +5,6 @@ import com.TopFounders.domain.model.*;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -202,6 +201,21 @@ public class ActionController {
         try{
             System.out.println("Post request reached here");
             String message = BMS.getInstance().resetInitialSystemState();
+
+            return message;
+        }
+        catch (Exception e) {
+            return "false";
+        }
+
+    }
+
+    @PostMapping("/gettier")
+    public String gettier(@RequestBody String username1){
+        try{
+            System.out.println(username1);
+            System.out.println("Post request reached here");
+            String message = BMS.getInstance().setRiderTier(username1);
 
             return message;
         }

@@ -43,7 +43,7 @@ public class Bike implements Publisher {
     public Bike(String bikeID, BikeType type){
         this.bikeID = bikeID;
         this.type = type;
-        setBikeState(BikeState.AVAILABLE); // Available by default
+        setBikeState(BikeState.AVAILABLE); // Availablù0e by default
     }
 
     // To ensure the stateString always follows the BikeState, the bike state can only be changed through a method that always changes the string aswell
