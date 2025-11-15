@@ -80,7 +80,7 @@ export default function Home() {
             if (response.ok) {
                 const userData = await response.json();
                 setUser(userData);
-                setRole(userData.role);
+                setRole(localStorage.getItem("role"));
                 setUserId(userData.username);
                 logMessage(`Welcome ${userData.fullName || userData.username} (${userData.role})`);
             } else {
