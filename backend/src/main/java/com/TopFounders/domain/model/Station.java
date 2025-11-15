@@ -82,6 +82,11 @@ public class Station {
         return (int) docks.stream().filter(dock -> dock.getState() == DockState.EMPTY).count();
     }
 
+    //calculate station occupancy and return percent
+    public double calculateStationOccupancy(){
+        return ((((double)getBikesAvailable())/((double)getCapacity()))*100 );
+    }
+
     // Method for occupancy state
     public StationOccupancyState getOccupancyStatus() {
         if (operationalState == StationOperationalState.OUT_OF_SERVICE){

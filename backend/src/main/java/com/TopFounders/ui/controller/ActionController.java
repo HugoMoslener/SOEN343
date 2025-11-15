@@ -211,5 +211,22 @@ public class ActionController {
 
     }
 
+    @PostMapping("/getFlexDollars")
+    public String getFlexDollars(@RequestBody String username ){
+        try{
+            UserService userService = new UserService();
+            User user = userService.getUserDetails(username);
+            if(user.getRole().equals("rider")){
+                Rider rider = riderService.getRiderDetails(username);
+                return String.valueOf(rider.getFlexMoney());
+            }
+           return null;
+        }
+        catch (Exception e) {
+            return "false";
+        }
+
+    }
+
 
 }

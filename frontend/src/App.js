@@ -10,7 +10,36 @@ import Pricing from './components/Pricing';
 import RideHistory from './components/RideHistory';
 import { authService } from './services/authService';
 function Home({ user, onLogout }) {
-  return (
+
+    const [flexDollar, setFlexDollars] = useState("0");
+
+
+
+    useEffect(() => {
+        if(localStorage.getItem("role") === "rider"){
+            const fetchFlexDollars = async () => {
+                try {
+                    const response = await fetch("/api/action/getFlexDollars", {
+                        method: "POST",
+                        headers: { "Content-Type": "text/plain" },
+                        body: localStorage.getItem("username"),
+                    });
+
+                    const data = await response.text(); // backend returns plain string
+                    if (data && data !== "false") {
+                        setFlexDollars(data);
+                        alert("You have a " + data+" flexdollars");
+                    } else {
+                        setFlexDollars("0");
+                    }
+                } catch (error) {
+                    console.error("Error fetching FlexDollars:", error);
+                    setFlexDollars("0");
+                }
+            };
+        fetchFlexDollars();}
+    }, []);
+    return (
     <div className="App">
       <header className="App-header">
 
@@ -27,13 +56,54 @@ function Home({ user, onLogout }) {
                 </header>
 
                 {/* Main Content */}
-                <main className="flex-grow flex flex-col items-center justify-center text-center px-6">
-                    <h2 className="text-3xl font-semibold text-gray-800 mb-3">
-                        You’re successfully logged in!
-                    </h2>
-                    <p className="text-gray-600 max-w-md">
-                        Explore the dashboard/map, the pricing, billing and the ride history.
-                    </p>
+                <main className="flex-grow flex flex-col items-center justify-center text-center px-6 space-y-6">
+                    <div>
+                        <h2 className="text-3xl font-semibold text-gray-800 mb-2">
+                            You’re successfully logged in!
+                        </h2>
+                        <p className="text-gray-600 max-w-md">
+                            Explore the dashboard/map, the pricing, billing, and the ride history.
+                        </p>
+                    </div>
+
+                    {/* FlexDollar Card */}
+                    <div className="w-full max-w-md">
+                        <div className="bg-white shadow-lg rounded-xl p-6 border border-gray-200 hover:shadow-2xl transition-shadow duration-300">
+                            {/* User Info */}
+                            <div className="flex flex-col items-center space-y-1">
+                                <h3 className="text-xl font-semibold text-gray-800"> Name : {localStorage.getItem("fullName")}</h3>
+                                <p className="text-xl font-semibold text-gray-800">Username : {localStorage.getItem("username")}</p>
+                            </div>
+
+                            {/* FlexDollars */}
+                            {localStorage.getItem("role") === "rider" && (
+                            <div className="mt-6 bg-gray-50 p-4 rounded-lg text-center">
+                                <p className="text-sm text-gray-900">Remaining FlexDollars</p>
+                                <p className="text-2xl font-bold text-indigo-600">{flexDollar} $</p>
+                            </div>)}
+
+                            {/* Role Toggle (Operators only) */}
+                            {localStorage.getItem("role") === "operator" && (
+                            <div className="mt-6">
+                                <p className="text-gray-900 text-sm mb-2">Toggle Role View</p>
+                                <div className="flex justify-center space-x-4">
+                                    <button className="px-4 py-2 rounded-lg border bg-indigo-600 text-white border-indigo-600">
+                                        Rider
+                                    </button>
+                                    <button className="px-4 py-2 rounded-lg border bg-white text-gray-700 border-gray-300 hover:bg-indigo-100">
+                                        Operator
+                                    </button>
+                                </div>
+                            </div>)}
+
+                            {/* Tier Display */}
+                            {localStorage.getItem("role") === "rider" && (
+                            <div className="mt-6 bg-yellow-50 p-4 rounded-lg text-center">
+                                <p className="text-sm text-gray-900">Your Tier</p>
+                                <p className="text-xl font-bold text-yellow-600">Silver</p>
+                            </div>)}
+                        </div>
+                    </div>
                 </main>
 
                 {/* Footer */}
