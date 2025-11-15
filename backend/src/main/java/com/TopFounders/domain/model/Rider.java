@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutionException;
 public class Rider extends User{
 
     private String paymentInformation;
+    private int number = 0;
 
     public Rider() {
     }
@@ -15,6 +16,9 @@ public class Rider extends User{
         super(username,email, fullName,address,role);
         this.paymentInformation = paymentInformation;
     }
+
+    public int getNumber() {return number;}
+    public void setNumber(int number) {this.number = number;}
     public String getPaymentInformation(){
         return paymentInformation;
     }

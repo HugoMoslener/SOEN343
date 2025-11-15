@@ -25,6 +25,7 @@ const Login = ({ onLogin }) => {
         localStorage.setItem("role", result.role);
         localStorage.setItem("email", result.email);
         localStorage.setItem("fullName", result.fullName);
+        alert(result.number.toString());
 
         if(result.role === "rider"){
          localStorage.setItem("paymentInformation", result.paymentInformation);
