@@ -12,8 +12,8 @@ import { authService } from './services/authService';
 function Home({ user, onLogout }) {
 
     const [flexDollar, setFlexDollars] = useState("0");
-
-
+    const [message, setMessage] = useState("");
+    const [seen, setSeen] = useState(false);
 
     useEffect(() => {
         if(localStorage.getItem("role") === "rider"){
@@ -28,7 +28,8 @@ function Home({ user, onLogout }) {
                     const data = await response.text(); // backend returns plain string
                     if (data && data !== "false") {
                         setFlexDollars(data);
-                        alert("You have a " + data+" flexdollars");
+                        setMessage(`You have ${data} FlexDollars`);
+                        setSeen(false);
                     } else {
                         setFlexDollars("0");
                     }
@@ -56,6 +57,21 @@ function Home({ user, onLogout }) {
                 </header>
 
                 {/* Main Content */}
+                {message && !seen && (
+                    <div className="w-full flex justify-center mt-4 px-6">
+                        <div className="bg-green-100 text-green-800 border border-green-300 rounded-lg px-4 py-3 shadow-sm flex items-center space-x-4">
+                            <span>{message}</span>
+
+                            <button
+                                onClick={() => setSeen(true)}
+                                className="ml-4 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-3 py-1 rounded-lg shadow-sm transition-all duration-200"
+                            >
+                                ✓ Seen
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 <main className="flex-grow flex flex-col items-center justify-center text-center px-6 space-y-6">
                     <div>
                         <h2 className="text-3xl font-semibold text-gray-800 mb-2">

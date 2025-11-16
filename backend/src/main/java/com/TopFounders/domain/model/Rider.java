@@ -8,7 +8,7 @@ import java.util.concurrent.ExecutionException;
 public class Rider extends User{
 
     private String paymentInformation;
-    private double flexMoney;
+    private double flexMoney = 0.0;
 
     public Rider() {
     }
