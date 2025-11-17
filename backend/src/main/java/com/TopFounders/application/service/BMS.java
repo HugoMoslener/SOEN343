@@ -38,7 +38,7 @@ public class BMS implements Subscriber {
     }
 
     public void setPricingStrategy(PricingStrategy pricingStrategy){this.pricingStrategy = pricingStrategy;}
-    public double doPricingStrategy(Trip trip){return pricingStrategy.calculateTotal(trip);};
+    public double doPricingStrategy(Trip trip) throws ExecutionException, InterruptedException {return pricingStrategy.calculateTotal(trip);};
 
 
     public String saveRiderData(String username, String paymentInformation, String email, String fullName, String address, String role) throws ExecutionException, InterruptedException {
@@ -198,13 +198,13 @@ public class BMS implements Subscriber {
             trip.setPricingPlan(pricingPlan);
             trip.setRatePerMinute((Double)(pricingPlan.getRatePerMinute()));
             if(planID.equals("1")) {
-                System.out.println(pricingStrategy.calculateTotal(trip));
                 payment.setAmount(pricingStrategy.calculateTotal(trip));
             }
             else if (planID.equals("2") || planID.equals("3")){
-                System.out.println(pricingStrategy.calculateTotal(trip));
                 payment.setAmount(pricingStrategy.calculateTotal(trip));
             }
+
+            calculateFlexMoney(reservation.getRider().getUsername(),dockID); // calculating flex money
 
 
             // update local bike
@@ -243,6 +243,25 @@ public class BMS implements Subscriber {
         tripService.updateTripDetails(trip);
 
         return "Successful";
+    }
+
+    public String calculateFlexMoney(String username, String dockID) throws ExecutionException, InterruptedException {
+        Dock dock = dockService.getDockDetails(dockID);
+        Station station = stationService.getStationDetails(dock.getStationID());
+
+        if(station.calculateStationOccupancy()< 25.0){
+            Rider rider = riderService.getRiderDetails(username);
+            System.out.println("Availability"+(double)((station.getBikesAvailable())));
+            System.out.println("Capacity"+(double)((station.getCapacity()) ));
+            System.out.println("flexdollar remaining" + rider.getFlexMoney());
+            double flexdollar = rider.getFlexMoney() + 5.0;
+            rider.setFlexMoney(flexdollar);
+            riderService.updateRiderDetails(rider);
+            return "Successful flexdollar insertion";
+        }
+
+        return "Unsuccessful flexdollar insertion";
+
     }
 
     public String moveABikefromDockAToDockB(Dock dockA, Dock dockB,Bike bike) throws ExecutionException, InterruptedException {
