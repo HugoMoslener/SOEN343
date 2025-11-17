@@ -7,12 +7,9 @@ import com.TopFounders.domain.factory.RiderCreator;
 import com.TopFounders.domain.model.*;
 import com.TopFounders.domain.observer.Subscriber;
 
-import java.sql.Time;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
 public class BMS implements Subscriber {
@@ -26,6 +23,7 @@ public class BMS implements Subscriber {
     private final RiderService riderService  = new RiderService();
     private final TripService tripService = new TripService();
     private final UserService userService = new UserService();
+    private final TierService tierService = new TierService();
     private PricingStrategy pricingStrategy;
 
     private BMS(){}
@@ -197,14 +195,25 @@ public class BMS implements Subscriber {
 
             trip.setPricingPlan(pricingPlan);
             trip.setRatePerMinute((Double)(pricingPlan.getRatePerMinute()));
+            double calculatedAmount = 0.0;
             if(planID.equals("1")) {
-                System.out.println(pricingStrategy.calculateTotal(trip));
-                payment.setAmount(pricingStrategy.calculateTotal(trip));
+                calculatedAmount = pricingStrategy.calculateTotal(trip);
+                payment.setAmount(calculatedAmount);
+                System.out.println(calculatedAmount);
             }
             else if (planID.equals("2") || planID.equals("3")){
-                System.out.println(pricingStrategy.calculateTotal(trip));
-                payment.setAmount(pricingStrategy.calculateTotal(trip));
+                calculatedAmount = pricingStrategy.calculateTotal(trip);
+                payment.setAmount(calculatedAmount);
+                System.out.println(calculatedAmount);
             }
+            
+            // Apply tier discount if rider has a tier
+            if (rider.getTier() != null) {
+                calculatedAmount = tierService.applyDiscount(calculatedAmount, rider.getTier());
+                System.out.println("Applied tier discount. Final amount: " + calculatedAmount);
+            }
+            
+            payment.setAmount(calculatedAmount);
 
 
             // update local bike

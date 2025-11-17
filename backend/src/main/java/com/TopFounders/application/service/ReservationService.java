@@ -76,4 +76,20 @@ public class ReservationService {
         ApiFuture<WriteResult> writeResult = db.collection(Collection).document(reservationID).delete();
         return "reservation with ID  "+reservationID+" has been deleted";
     }
+
+    public ArrayList<Reservation> getReservationsByRider(String riderUsername) throws InterruptedException, ExecutionException {
+        Firestore db = FirestoreClient.getFirestore();
+        ApiFuture<QuerySnapshot> future = db.collection(Collection).get();
+        List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
+        ArrayList<Reservation> reservationList = new ArrayList<>();
+        for (QueryDocumentSnapshot doc : documents) {
+            Reservation reservation = doc.toObject(Reservation.class);
+            if (reservation != null && reservation.getRider() != null && 
+                reservation.getRider().getUsername().equals(riderUsername)) {
+                reservationList.add(reservation);
+            }
+        }
+        return reservationList;
+    }
 }

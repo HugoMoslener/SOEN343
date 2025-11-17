@@ -8,12 +8,15 @@ import java.util.concurrent.ExecutionException;
 public class Rider extends User{
 
     private String paymentInformation;
+    private Tier tier;
 
     public Rider() {
+        this.tier = Tier.ENTRY;
     }
     public Rider(String username, String paymentInformation, String email, String fullName, String address, String role) {
         super(username,email, fullName,address,role);
         this.paymentInformation = paymentInformation;
+        this.tier = Tier.ENTRY;
     }
     public String getPaymentInformation(){
         return paymentInformation;
@@ -36,6 +39,14 @@ public class Rider extends User{
     public String undockBike(String username, String reservationID) throws ExecutionException, InterruptedException, IllegalStateException {
         String message = Dashboard.getInstance().undockBike(username, reservationID);
         return message;
+    }
+
+    public Tier getTier() {
+        return tier;
+    }
+
+    public void setTier(Tier tier) {
+        this.tier = tier;
     }
 
 }

@@ -1,9 +1,11 @@
 package com.TopFounders.ui.controller;
 
 import com.TopFounders.application.service.BMS;
+import com.TopFounders.application.service.TierService;
 import com.TopFounders.domain.factory.OperatorCreator;
 import com.TopFounders.domain.model.Operator;
 import com.TopFounders.domain.model.Rider;
+import com.TopFounders.domain.model.Tier;
 import com.TopFounders.domain.model.User;
 import com.TopFounders.application.service.OperatorService;
 import com.TopFounders.application.service.RiderService;
@@ -24,6 +26,7 @@ public class SignUpController {
 
     private final RiderService riderService = new RiderService();
     private final OperatorService operatorService = new OperatorService();
+    private final TierService tierService = new TierService();
 
     @GetMapping("/hello")
     public String getHello(){
@@ -34,10 +37,14 @@ public class SignUpController {
     public String saveData(@RequestBody RiderHelperClass rider ){
         try{
             System.out.println("Post request reached here");
+            System.out.println("Rider data: " + rider.getUsername() + ", " + rider.getEmail() + ", " + rider.getFullName());
             String message = BMS.getInstance().saveRiderData(rider.getUsername(),rider.getPaymentInformation(),rider.getEmail(),rider.getFullName(),rider.getAddress(), "rider");
+            System.out.println("Rider saved successfully: " + message);
             return "true";
         }
         catch (Exception e) {
+            System.out.println("Error saving rider: " + e.getMessage());
+            e.printStackTrace();
             return "false";
         }
 
@@ -139,7 +146,34 @@ public class SignUpController {
 
             if(data.getRole().equals("rider")){
                 System.out.println("Returning Rider object");
-                return ResponseEntity.ok((Rider)data);
+                Rider rider = (Rider)data;
+                
+                // Check and update tier on login
+                String tierNotification = null;
+                boolean tierUpgraded = false;
+                try {
+                    Tier oldTier = rider.getTier() != null ? rider.getTier() : Tier.ENTRY;
+                    tierNotification = tierService.evaluateAndUpdateTier(cleanUsername);
+                    
+                    // Refresh rider data to get updated tier
+                    rider = riderService.getRiderDetails(cleanUsername);
+                    Tier newTier = rider.getTier() != null ? rider.getTier() : Tier.ENTRY;
+                    
+                    if (tierNotification != null && newTier.ordinal() > oldTier.ordinal()) {
+                        tierUpgraded = true;
+                    }
+                } catch (Exception e) {
+                    System.out.println("Error evaluating tier: " + e.getMessage());
+                    e.printStackTrace();
+                }
+                
+                // Return response with notification if tier changed
+                if (tierNotification != null) {
+                    UserDataResponse response = new UserDataResponse(rider, tierNotification, tierUpgraded);
+                    return ResponseEntity.ok(response);
+                } else {
+                    return ResponseEntity.ok(rider);
+                }
             } else {
                 System.out.println("Returning Operator object");
                 return ResponseEntity.ok((Operator)data);
