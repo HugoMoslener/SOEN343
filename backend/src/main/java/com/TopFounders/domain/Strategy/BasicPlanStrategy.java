@@ -1,6 +1,7 @@
 package com.TopFounders.domain.Strategy;
 
 import com.TopFounders.application.service.RiderService;
+import com.TopFounders.application.service.TripService;
 import com.TopFounders.domain.model.BikeType;
 import com.TopFounders.domain.model.Rider;
 import com.TopFounders.domain.model.Trip;
@@ -39,17 +40,21 @@ public class BasicPlanStrategy implements PricingStrategy {
         System.out.println("alvin ");
         System.out.println("flex " + flex);
         System.out.println("amount before " + amount);
-
+        TripService tripService = new TripService();
         if (flex >= amount) {
             double newFlex = flex - amount;
             newFlex = Math.round(newFlex * 100.0) / 100.0;
             rider.setFlexMoney(newFlex);
             amount = 0.0;
+            trip.setFlexdollarApplied(amount);
+            tripService.updateTripDetails(trip);
             riderService.updateRiderDetails(rider);
         } else {
             amount = amount - flex;
             amount = Math.round(amount * 100.0) / 100.0;
             rider.setFlexMoney(0.0);
+            trip.setFlexdollarApplied(flex);
+            tripService.updateTripDetails(trip);
             riderService.updateRiderDetails(rider);
         }
 

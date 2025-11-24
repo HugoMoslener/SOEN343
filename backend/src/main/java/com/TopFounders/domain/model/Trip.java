@@ -19,6 +19,7 @@ public class Trip implements Publisher {
     private Payment payment;
     private PricingPlan pricingPlan;
     private Reservation reservation;
+    private double flexdollarApplied = 0.0;
     private List<Subscriber> subscribers = new ArrayList<>();
 
     public Trip() {}
@@ -31,7 +32,8 @@ public class Trip implements Publisher {
         this.pricingPlan = pricingPlan;
         this.ratePerMinute = pricingPlan.getRatePerMinute();
     }
-
+    public double getFlexdollarApplied() {return flexdollarApplied;}
+    public void setFlexdollarApplied(double flexdollarApplied) {this.flexdollarApplied = flexdollarApplied;}
     public String getTripID() {return tripID;}
     public String getStartTime() {return startTime;}
     public void setStartTime(String startTime) {this.startTime = startTime;}
