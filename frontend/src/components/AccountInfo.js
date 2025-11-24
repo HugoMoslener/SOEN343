@@ -114,9 +114,9 @@ export default function AccountInfo() {
 
                     const data = await response.text(); // backend returns plain string
                     if (data && data !== "false") {
-                        localStorage.setItem("flexMoney", "0");
+                        localStorage.setItem("flexMoney", data);
                     } else {
-                        localStorage.setItem("flexMoney",data);
+                        localStorage.setItem("flexMoney","0");
                     }
                 } catch (error) {
                     console.error("Error fetching FlexDollars:", error);
