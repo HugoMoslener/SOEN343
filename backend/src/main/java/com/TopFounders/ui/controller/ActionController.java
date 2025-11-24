@@ -68,9 +68,28 @@ public class ActionController {
         try{
             System.out.println("Post request reached here" + dockingHelperClass.getDockID() +":"+dockingHelperClass.getReservationID()+":"+dockingHelperClass.getRiderID());
             MapService.getInstance().setStations(stationService.getAllStations());
-            return BMS.getInstance().dockBike(dockingHelperClass.getRiderID(),dockingHelperClass.getReservationID(),dockingHelperClass.getDockID(),dockingHelperClass.getPlanID() );
+            Trip trip = BMS.getInstance().dockBike(dockingHelperClass.getRiderID(),dockingHelperClass.getReservationID(),dockingHelperClass.getDockID(),dockingHelperClass.getPlanID() );
 
+            // NEW: Evaluate and update tier after successful docking
+            if (trip != null) {
+                try {
+                    String riderUsername = dockingHelperClass.getRiderID();
+                    Tier newTier = tierService.determineTier(riderUsername);
+                    Rider rider = riderService.getRiderDetails(riderUsername);
+
+                    if (rider != null) {
+                        rider.setTier(newTier);
+                        riderService.updateRider(rider);  // Save changes to Firebase
+                    }
+                } catch (Exception tierException) {
+                    System.out.println("Warning: Could not update tier --> " + tierException.getMessage());
+                    // Continue anyway - tier update failure shouldn't break bike docking
+                }
+            }
+
+            return trip;
         }
+
         catch (Exception e) {
             return null;
         }
