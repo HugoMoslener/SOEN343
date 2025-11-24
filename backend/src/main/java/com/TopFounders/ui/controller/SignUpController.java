@@ -1,13 +1,11 @@
 package com.TopFounders.ui.controller;
 
-import com.TopFounders.application.service.BMS;
+import com.TopFounders.application.service.*;
 import com.TopFounders.domain.factory.OperatorCreator;
 import com.TopFounders.domain.model.Operator;
 import com.TopFounders.domain.model.Rider;
+import com.TopFounders.domain.model.Tier;
 import com.TopFounders.domain.model.User;
-import com.TopFounders.application.service.OperatorService;
-import com.TopFounders.application.service.RiderService;
-import com.TopFounders.application.service.UserService;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.UserRecord;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -138,6 +136,26 @@ public class SignUpController {
             System.out.println("✅ User class: " + data.getClass().getSimpleName());
 
             if(data.getRole().equals("rider")){
+                // If it's a rider, evaluate and update their tier
+                try {
+                    RiderService riderService = new RiderService();
+                    ReservationService reservationService = new ReservationService();
+                    TripService tripService = new TripService();
+
+                    TierService tierService = new TierService(riderService, reservationService, tripService);
+                    Tier newTier = tierService.determineTier(cleanUsername);
+
+                    Rider rider = (Rider) data;
+                    rider.setTier(newTier);
+                    riderService.updateRiderDetails(rider);  // Save updated tier to Firestore
+
+                    System.out.println("Tier updated to: " + newTier);
+
+                } catch (Exception tierException) {
+                    System.out.println("Warning: Could not evaluate tier --> " + tierException.getMessage());
+                    // Continue anyway because it shouldn't block login
+                }
+
                 System.out.println("Returning Rider object");
                 return ResponseEntity.ok((Rider)data);
             } else {
