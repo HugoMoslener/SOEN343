@@ -14,7 +14,7 @@ public class MapService {
 
     private MapService(){}
 
-    public static MapService getInstance(){
+    public static synchronized MapService getInstance(){
         if(instance == null){
             instance = new MapService();
         }
