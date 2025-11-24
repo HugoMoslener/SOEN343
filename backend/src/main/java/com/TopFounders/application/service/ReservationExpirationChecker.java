@@ -1,5 +1,6 @@
 package com.TopFounders.application.service;
 import com.TopFounders.domain.model.ReservationState;
+import com.TopFounders.domain.model.Tier;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
@@ -15,10 +16,14 @@ import java.util.concurrent.ExecutionException;
 @Service
 public class ReservationExpirationChecker {
 
-    private static final Double EXPIRATION_MINUTES = 5.0;
     private final ReservationService reservationService;
-    public ReservationExpirationChecker(){
-        this.reservationService = new ReservationService();
+    private final TierService tierService;
+    private final BMS bms;
+
+    public ReservationExpirationChecker(ReservationService reservationService, TierService tierService, BMS bms){
+        this.reservationService = reservationService;
+        this.tierService = tierService;
+        this.bms = bms;
     }
 
     @Scheduled(fixedRate = 30000)
@@ -27,6 +32,11 @@ public class ReservationExpirationChecker {
 
         for (Reservation reservation : reservations) {
             if(reservation.getState().equals(ReservationState.PENDING)) {
+
+                // Get rider's tier and calculate total hold time
+                String username = reservation.getRider().getUsername();
+                Tier riderTier = tierService.determineTier(username);
+                int totalHoldMinutes = 5 + tierService.getReservationHoldExtensionMinutes(riderTier);
 
                 LocalTime storedTime = LocalTime.parse(reservation.getTime());
 
@@ -38,9 +48,8 @@ public class ReservationExpirationChecker {
                     duration = duration.plusHours(24);
                 }
 
-                if (duration.toMinutes() >= 5) {
-                    BMS.getInstance().cancelReservation(reservation.getReservationID(), reservation.getRider().getUsername());
-                } else {
+                if (duration.toMinutes() >= totalHoldMinutes) {
+                    bms.cancelReservation(reservation.getReservationID(), username);
                 }
             }
         }

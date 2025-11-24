@@ -4,6 +4,7 @@ import com.TopFounders.domain.model.Reservation;
 import com.TopFounders.domain.model.ReservationState;
 import com.TopFounders.domain.model.Tier;
 import com.TopFounders.domain.model.Trip;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+@Service
 public class TierService {
     private final ReservationService reservationService;
     private final TripService tripService;

@@ -1,9 +1,11 @@
 package com.TopFounders.domain.Strategy;
 
 import com.TopFounders.application.service.RiderService;
+import com.TopFounders.application.service.TierService;
 import com.TopFounders.application.service.TripService;
 import com.TopFounders.domain.model.BikeType;
 import com.TopFounders.domain.model.Rider;
+import com.TopFounders.domain.model.Tier;
 import com.TopFounders.domain.model.Trip;
 
 import java.time.Duration;
@@ -11,6 +13,13 @@ import java.time.LocalTime;
 import java.util.concurrent.ExecutionException;
 
 public class PremiumPlanStrategy implements PricingStrategy {
+
+    private final TierService tierService;
+
+    public PremiumPlanStrategy(TierService tierService) {
+        this.tierService = tierService;
+    }
+
     @Override
     public double calculateTotal(Trip trip) throws ExecutionException, InterruptedException {
 
@@ -61,6 +70,14 @@ public class PremiumPlanStrategy implements PricingStrategy {
             amount = amount * 0.90;  // 10% off for operator-linked riders
             amount = Math.round(amount * 100.0) / 100.0;
         }
+
+        // Get rider's tier and apply discount
+        Tier riderTier = tierService.determineTier(username);
+        amount = tierService.applyDiscount(amount, riderTier);
+        amount = Math.round(amount * 100.0) / 100.0;
+
+        System.out.println("Tier discount applied: " + riderTier + " (" + (tierService.getDiscountPercentage(riderTier) * 100) + "%)");
+        System.out.println("Final amount after tier discount: " + amount);
         System.out.println("amount after " + amount);
 
 
