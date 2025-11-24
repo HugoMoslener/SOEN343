@@ -181,6 +181,12 @@ public class BMS implements Subscriber {
         Station station = stationService.getStationDetails(result);
         Rider rider = riderService.getRiderDetails(reservation.getRider().getUsername());
 
+        if(station.calculateStationOccupancy() == 100){ // For station full when dock is occupied.
+            rider.setFlexMoney(rider.getFlexMoney() + 5.0);
+            riderService.updateRiderDetails(rider);
+            return null;
+        }
+
         if((reservation.getRider().getUsername().equals(username)) & (reservation.getState() == ReservationState.CONFIRMED) & (dock.getState() == DockState.EMPTY) & (station.getOccupancyStatus() != StationOccupancyState.FULL) ){
             Payment payment = trip.getPayment();
 

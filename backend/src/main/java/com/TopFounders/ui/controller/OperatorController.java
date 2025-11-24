@@ -4,6 +4,7 @@ import com.TopFounders.application.service.OperatorService;
 import com.TopFounders.application.service.RiderService;
 import com.TopFounders.domain.model.Operator;
 import com.TopFounders.domain.model.Rider;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -62,6 +63,54 @@ public class OperatorController {
         } catch (Exception e) {
             System.out.println("Error creating rider for operator: " + e.getMessage());
             return null;
+        }
+    }
+
+    @GetMapping("/rider/{riderUsername}/operator")
+    public ResponseEntity<?> getOperatorFromRider(@PathVariable String riderUsername) {
+        try {
+            // Only operator-created riders are allowed
+            if (!riderUsername.contains("operator")) {
+                return ResponseEntity.status(403).body("This rider cannot switch to an operator.");
+            }
+
+            // Extract operator username ("operator1-rider" → "operator1")
+            String operatorUsername = riderUsername.split("-")[0];
+
+            Operator operator = operatorService.getOperatorDetails(operatorUsername);
+
+            if (operator == null) {
+                return ResponseEntity.status(404).body("Linked operator not found");
+            }
+
+            return ResponseEntity.ok(operator);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/switchToOperator")
+    public ResponseEntity<?> switchToOperator(@RequestBody String riderUsername) {
+        try {
+            riderUsername = riderUsername.replace("\"", "").trim();
+
+            if (!riderUsername.contains("operator")) {
+                return ResponseEntity.status(403).body("Forbidden");
+            }
+
+            String operatorUsername = riderUsername.split("-")[0];
+
+            Operator operator = operatorService.getOperatorDetails(operatorUsername);
+
+            if (operator == null) {
+                return ResponseEntity.status(404).body("Operator not found");
+            }
+
+            return ResponseEntity.ok(operator);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
         }
     }
 }

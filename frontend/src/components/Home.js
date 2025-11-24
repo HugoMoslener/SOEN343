@@ -66,15 +66,21 @@ export default function Home() {
 
     const fetchUserDetails = async (firebaseUser) => {
         try {
-            const email = firebaseUser.email;
-            const username = email.split('@')[0];
+            let storedUsername = localStorage.getItem("username");
 
-            console.log("Fetching user data for:", username);
+            if (!storedUsername) {
+                console.log("No stored username, fallback to firebase user");
+                const email = firebaseUser.email;
+                storedUsername = email.split("@")[0];
+                localStorage.setItem("username", storedUsername);
+            }
+
+            console.log("Fetching user data for:", storedUsername);
 
             const response = await fetch("/api/signIn/getUserData", {
                 method: "POST",
                 headers: { "Content-Type": "text/plain" },
-                body: username
+                body: storedUsername
             });
 
             if (response.ok) {
@@ -84,7 +90,7 @@ export default function Home() {
                 setUserId(userData.username);
                 logMessage(`Welcome ${userData.fullName || userData.username} (${userData.role})`);
             } else {
-                logMessage(`Failed to fetch user details for: ${username}`);
+                logMessage(`Failed to fetch user details for: ${storedUsername}`);
             }
         } catch (error) {
             logMessage(`Error: ${error.message}`);
@@ -497,6 +503,26 @@ export default function Home() {
             .catch(e => logMessage(`❌ Network error: ${e.message}`));
     }
 
+    // Handle rewarding user for reporting full station
+    const handleStationFullReward = async (stationID) => {
+        try {
+            const response = await fetch("/api/action/reportStationFull", {
+                method: "POST",
+                headers: { "Content-Type": "text/plain" },
+                body: userId
+            });
+
+            const msg = await response.text();
+            logMessage(msg);
+
+            if (msg.includes("Success")) {
+                alert("Station reported full. You earned +5 flex dollars!");
+            }
+        } catch (err) {
+            logMessage("Error rewarding flex dollars: " + err.message);
+        }
+    };
+
     return (
         <div className="flex flex-col gap-4 p-4">
             <h1 className="text-2xl font-bold text-center">Bike Sharing Dashboard</h1>
@@ -645,6 +671,15 @@ export default function Home() {
                                             } text-white px-3 py-1 rounded`}
                                         >
                                             {station.operationalState === 'ACTIVE' ? 'Set Out of Service' : 'Set Active'}
+                                        </button>
+                                    )}
+                                    {/* Rider can report full station for reward */}
+                                    {reservedBike && reservedBike.checkedOut && getOccupancyPercent(station) === 100 && (
+                                        <button
+                                            onClick={() => handleStationFullReward(station.stationID)}
+                                            className="mt-2 bg-purple-600 text-white px-3 py-1 rounded text-xs"
+                                        >
+                                            Report Full Station (+5 Flex)
                                         </button>
                                     )}
 

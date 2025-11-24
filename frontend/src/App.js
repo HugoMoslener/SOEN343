@@ -9,6 +9,7 @@ import Billing from './components/Billing';
 import Pricing from './components/Pricing';
 import RideHistory from './components/RideHistory';
 import { authService } from './services/authService';
+import AccountInfo from "./components/AccountInfo";
 function Home({ user, onLogout }) {
 
     const [flexDollar, setFlexDollars] = useState("0");
@@ -96,27 +97,6 @@ function Home({ user, onLogout }) {
                             <div className="mt-6 bg-gray-50 p-4 rounded-lg text-center">
                                 <p className="text-sm text-gray-900">Remaining FlexDollars</p>
                                 <p className="text-2xl font-bold text-indigo-600">{flexDollar} $</p>
-                            </div>)}
-
-                            {/* Role Toggle (Operators only) */}
-                            {localStorage.getItem("role") === "operator" && (
-                            <div className="mt-6">
-                                <p className="text-gray-900 text-sm mb-2">Toggle Role View</p>
-                                <div className="flex justify-center space-x-4">
-                                    <button className="px-4 py-2 rounded-lg border bg-indigo-600 text-white border-indigo-600">
-                                        Rider
-                                    </button>
-                                    <button className="px-4 py-2 rounded-lg border bg-white text-gray-700 border-gray-300 hover:bg-indigo-100">
-                                        Operator
-                                    </button>
-                                </div>
-                            </div>)}
-
-                            {/* Tier Display */}
-                            {localStorage.getItem("role") === "rider" && (
-                            <div className="mt-6 bg-yellow-50 p-4 rounded-lg text-center">
-                                <p className="text-sm text-gray-900">Your Tier</p>
-                                <p className="text-xl font-bold text-yellow-600">Silver</p>
                             </div>)}
                         </div>
                     </div>
@@ -218,6 +198,12 @@ function App() {
                     >
                         Pricing
                     </Link>
+                    <Link
+                        to="/account"
+                        className="text-slate-900 hover:text-blue-600 font-medium transition-colors duration-200"
+                    >
+                        Account
+                    </Link>
                     {localStorage.getItem("role") === "rider" && (
                     <Link
                         to="/billing"
@@ -266,6 +252,7 @@ function App() {
         <Route path="/register" element={
           <Register onRegister={(user) => setUser(user)} />
         } />
+            <Route path="/account" element={<AccountInfo />} />
       </Routes>
     </Router>
   );
