@@ -5,7 +5,108 @@ export default function AccountInfo() {
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [paymentInfo, setPaymentInfo] = useState("");
     const [showOptions, setShowOptions] = useState(false);
+    const [tierInfo, setTierInfo] = useState(null);
+    const [tierLoading, setTierLoading] = useState(false);
     const username = localStorage.getItem("username");
+    const role = localStorage.getItem("role");
+
+    // Fetch tier info on component mount
+    useEffect(() => {
+        if (role === "rider") {
+            fetchTierInfo();
+        }
+    }, [role]);
+
+    // Fetch Flex Dollars for riders
+    useEffect(() => {
+        if(localStorage.getItem("role") === "rider"){
+            const fetchFlexDollars = async () => {
+                try {
+                    const response = await fetch("/api/action/getFlexDollars", {
+                        method: "POST",
+                        headers: { "Content-Type": "text/plain" },
+                        body: localStorage.getItem("username"),
+                    });
+
+                    const data = await response.text(); // backend returns plain string
+                    if (data && data !== "false") {
+                        localStorage.setItem("flexMoney", data);
+                    } else {
+                        localStorage.setItem("flexMoney","0");
+                    }
+                } catch (error) {
+                    console.error("Error fetching FlexDollars:", error);
+                    localStorage.setItem("flexMoney", "0");
+                }
+            };
+            fetchFlexDollars();}
+    }, []);
+
+    const fetchTierInfo = async () => {
+        try {
+            setTierLoading(true);
+            const response = await fetch("/api/signIn/getUserData", {
+                method: "POST",
+                headers: { "Content-Type": "text/plain" },
+                body: username
+            });
+
+            if (response.ok) {
+                const userData = await response.json();
+                if (userData.tier) {
+                    setTierInfo({
+                        tier: userData.tier,
+                        discount: getTierDiscount(userData.tier),
+                        holdExtension: getTierHoldExtension(userData.tier)
+                    });
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching tier info:", error);
+        } finally {
+            setTierLoading(false);
+        }
+    };
+
+    // Helper function to get discount percentage by tier
+    const getTierDiscount = (tier) => {
+        switch(tier) {
+            case "BRONZE":
+                return 5;
+            case "SILVER":
+                return 10;
+            case "GOLD":
+                return 15;
+            default:
+                return 0;
+        }
+    };
+
+    // Helper function to get hold extension by tier
+    const getTierHoldExtension = (tier) => {
+        switch(tier) {
+            case "SILVER":
+                return 2;
+            case "GOLD":
+                return 5;
+            default:
+                return 0;
+        }
+    };
+
+    // Get tier badge color and styling
+    const getTierBadgeStyle = (tier) => {
+        switch(tier) {
+            case "GOLD":
+                return "bg-yellow-100 text-yellow-800 border-yellow-300";
+            case "SILVER":
+                return "bg-gray-100 text-gray-800 border-gray-300";
+            case "BRONZE":
+                return "bg-orange-100 text-orange-800 border-orange-300";
+            default:
+                return "bg-blue-100 text-blue-800 border-blue-300";
+        }
+    };
 
     const handleSwitchToRider = async () => {
         const response = await fetch(`/api/operator/${username}/rider`);
@@ -102,30 +203,6 @@ export default function AccountInfo() {
         }
     };
 
-    useEffect(() => {
-        if(localStorage.getItem("role") === "rider"){
-            const fetchFlexDollars = async () => {
-                try {
-                    const response = await fetch("/api/action/getFlexDollars", {
-                        method: "POST",
-                        headers: { "Content-Type": "text/plain" },
-                        body: localStorage.getItem("username"),
-                    });
-
-                    const data = await response.text(); // backend returns plain string
-                    if (data && data !== "false") {
-                        localStorage.setItem("flexMoney", data);
-                    } else {
-                        localStorage.setItem("flexMoney","0");
-                    }
-                } catch (error) {
-                    console.error("Error fetching FlexDollars:", error);
-                    localStorage.setItem("flexMoney", "0");
-                }
-            };
-            fetchFlexDollars();}
-    }, []);
-
     return (
         <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
 
@@ -186,6 +263,67 @@ export default function AccountInfo() {
                         )}
                     </div>
                 </div>
+
+                {/* Tier Information Card - Only show for riders */}
+                {localStorage.getItem("role") === "rider" && (
+                    <div className="w-full max-w-xl bg-white shadow-lg rounded-xl p-6 border border-gray-200">
+                        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+                            Loyalty Program
+                        </h2>
+
+                        {tierLoading ? (
+                            <p className="text-gray-600">Loading tier information...</p>
+                        ) : tierInfo ? (
+                            <div className="space-y-4">
+                                {/* Tier Badge */}
+                                <div className="flex items-center justify-center">
+                                    <span className={`px-6 py-2 rounded-full border-2 font-bold text-lg ${getTierBadgeStyle(tierInfo.tier)}`}>
+                                        {tierInfo.tier}
+                                    </span>
+                                </div>
+
+                                {/* Tier Benefits */}
+                                <div className="bg-blue-50 rounded-lg p-4 space-y-2">
+                                    <h3 className="font-semibold text-gray-800 mb-3">Current Benefits:</h3>
+
+                                    <div className="flex items-center space-x-2">
+                                        <span className="text-green-600">✓</span>
+                                        <span className="text-gray-700">
+                                            <strong>Discount:</strong> {tierInfo.discount}% off each ride
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center space-x-2">
+                                        <span className="text-green-600">✓</span>
+                                        <span className="text-gray-700">
+                                            <strong>Reservation Hold:</strong> {tierInfo.holdExtension > 0 ? `${tierInfo.holdExtension} extra minutes` : "Standard 5 minutes"}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Tier Requirements Info */}
+                                <div className="bg-gray-50 rounded-lg p-4">
+                                    <h3 className="font-semibold text-gray-800 mb-2">How to progress:</h3>
+                                    <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
+                                        <li><strong>BRONZE:</strong> 10+ trips, no cancellations, return all bikes</li>
+                                        <li><strong>SILVER:</strong> BRONZE + 5 confirmed reservations + 5+ trips/month</li>
+                                        <li><strong>GOLD:</strong> SILVER + 5+ trips every week</li>
+                                    </ul>
+                                </div>
+
+                                {/* Refresh Button */}
+                                <button
+                                    onClick={fetchTierInfo}
+                                    className="w-full mt-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium"
+                                >
+                                    Refresh Tier Info
+                                </button>
+                            </div>
+                        ) : (
+                            <p className="text-gray-600">Unable to load tier information</p>
+                        )}
+                    </div>
+                )}
 
                 <div className="w-full max-w-xl bg-white shadow-lg rounded-xl p-6 border border-gray-200 mt-4 space-y-4">
                     <h2 className="text-xl font-semibold text-gray-800">Switch Role</h2>

@@ -76,4 +76,23 @@ public class TripService {
         ApiFuture<WriteResult> writeResult = db.collection(Collection).document(tripID).delete();
         return "Trip with ID  "+tripID+" has been deleted";
     }
+
+    public ArrayList<Trip> getTripsByRider(String riderUsername)
+            throws InterruptedException, ExecutionException {
+        Firestore db = FirestoreClient.getFirestore();
+        ApiFuture<QuerySnapshot> future = db.collection(Collection).get();
+        List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
+        ArrayList<Trip> tripList = new ArrayList<>();
+        for (QueryDocumentSnapshot doc : documents) {
+            Trip trip = doc.toObject(Trip.class);
+            // Check nested rider username
+            if (trip.getReservation() != null &&
+                    trip.getReservation().getRider() != null &&
+                    riderUsername.equals(trip.getReservation().getRider().getUsername())) {
+                tripList.add(trip);
+            }
+        }
+        return tripList;
+    }
 }

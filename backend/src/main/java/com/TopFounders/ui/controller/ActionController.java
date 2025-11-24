@@ -68,10 +68,35 @@ public class ActionController {
         try{
             System.out.println("Post request reached here" + dockingHelperClass.getDockID() +":"+dockingHelperClass.getReservationID()+":"+dockingHelperClass.getRiderID());
             MapService.getInstance().setStations(stationService.getAllStations());
-            return BMS.getInstance().dockBike(dockingHelperClass.getRiderID(),dockingHelperClass.getReservationID(),dockingHelperClass.getDockID(),dockingHelperClass.getPlanID() );
+            Trip trip = BMS.getInstance().dockBike(dockingHelperClass.getRiderID(),dockingHelperClass.getReservationID(),dockingHelperClass.getDockID(),dockingHelperClass.getPlanID() );
 
+            // Evaluate and update tier after successful docking
+            if (trip != null) {
+                try {
+                    String riderUsername = dockingHelperClass.getRiderID();
+                    ReservationService reservationService = new ReservationService();
+                    TripService tripService = new TripService();
+
+                    TierService tierService = new TierService(riderService, reservationService, tripService);
+                    Tier newTier = tierService.determineTier(riderUsername);
+
+                    Rider rider = riderService.getRiderDetails(riderUsername);
+                    if (rider != null) {
+                        rider.setTier(newTier);
+                        riderService.updateRiderDetails(rider);  // Save to Firestore
+                        System.out.println("Rider tier updated to: " + newTier);
+                    }
+                } catch (Exception tierException) {
+                    System.out.println("Warning: Could not update tier after docking --> "
+                            + tierException.getMessage());
+                    // Doesn't fail the docking operation if tier update fails
+                }
+            }
+
+            return trip;
         }
         catch (Exception e) {
+            System.out.println("ERROR in BikeDocking --> " + e.getMessage());
             return null;
         }
 
