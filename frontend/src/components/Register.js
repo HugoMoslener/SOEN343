@@ -101,7 +101,17 @@ const Register = ({ onRegister }) => {
                               id="username"
                               type="text"
                               value={username}
-                              onChange={(e) => setUsername(e.target.value)}
+                              onChange={(e) => {
+                                  const value = e.target.value;
+
+                                  if (/[A-Z]/.test(value)) {
+                                      setError("Username cannot contain uppercase letters.");
+                                      return; // stop before updating username
+                                  }
+
+                                  setError(""); // clear error
+                                  setUsername(value);
+                              }}
                               required
                               className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none text-slate-900 placeholder:text-slate-400"
                               placeholder="johndoe"
