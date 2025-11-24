@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 
 export default function AccountInfo() {
 
@@ -101,6 +101,30 @@ export default function AccountInfo() {
             alert("Error switching back to operator.");
         }
     };
+
+    useEffect(() => {
+        if(localStorage.getItem("role") === "rider"){
+            const fetchFlexDollars = async () => {
+                try {
+                    const response = await fetch("/api/action/getFlexDollars", {
+                        method: "POST",
+                        headers: { "Content-Type": "text/plain" },
+                        body: localStorage.getItem("username"),
+                    });
+
+                    const data = await response.text(); // backend returns plain string
+                    if (data && data !== "false") {
+                        localStorage.setItem("flexMoney", "0");
+                    } else {
+                        localStorage.setItem("flexMoney",data);
+                    }
+                } catch (error) {
+                    console.error("Error fetching FlexDollars:", error);
+                    localStorage.setItem("flexMoney", "0");
+                }
+            };
+            fetchFlexDollars();}
+    }, []);
 
     return (
         <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
