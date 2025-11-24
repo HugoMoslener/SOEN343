@@ -228,5 +228,36 @@ public class ActionController {
 
     }
 
+    @PostMapping("/reportStationFull")
+    public String rewardForFullStation(@RequestBody String username) {
+        try {
+            UserService userService = new UserService();
+            RiderService riderService = new RiderService();
+
+            // get user
+            User user = userService.getUserDetails(username);
+            if (user == null || !user.getRole().equals("rider")) {
+                return "Error: Not a rider.";
+            }
+
+            // get rider object
+            Rider rider = riderService.getRiderDetails(username);
+            if (rider == null) {
+                return "Error: Rider not found.";
+            }
+
+            // add 5 flex dollars
+            double updatedFlex = rider.getFlexMoney() + 5;
+            rider.setFlexMoney(updatedFlex);
+
+            // save back to DB
+            riderService.updateRiderDetails(rider);
+
+            return "Success: Rider awarded +5 flex dollars.";
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+
 
 }

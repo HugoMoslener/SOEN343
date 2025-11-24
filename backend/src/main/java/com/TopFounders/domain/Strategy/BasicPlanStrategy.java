@@ -52,6 +52,13 @@ public class BasicPlanStrategy implements PricingStrategy {
             rider.setFlexMoney(0.0);
             riderService.updateRiderDetails(rider);
         }
+
+        String username = trip.getReservation().getRider().getUsername();
+        if (username.contains("operator")) {
+            amount = amount * 0.95;  // 5% off for operator-linked riders
+            amount = Math.round(amount * 100.0) / 100.0;
+        }
+
         System.out.println("amount after " + amount);
 
         return amount;
