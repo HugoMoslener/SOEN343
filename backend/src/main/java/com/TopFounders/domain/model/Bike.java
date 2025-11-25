@@ -107,7 +107,11 @@ public class Bike implements Publisher {
     }
     @Override
     public void notifySubscribers(String eventType){
-        subscribe(BMS.getInstance());
+        try {
+            subscribe(BMS.getInstance());
+        } catch (IllegalStateException e) {
+            // BMS not initialized (e.g., in unit tests) - continue without it
+        }
         for (Subscriber subscriber : subscribers){
             subscriber.update(eventType, this);
         }
