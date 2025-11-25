@@ -17,6 +17,7 @@ class StationTest {
 
     @Test
     void testStationCreation() {
+        System.out.println("\n=== TEST: StationTest.testStationCreation ===");
         assertNotNull(station);
         assertEquals("STATION001", station.getStationID());
         assertEquals("Downtown Station", station.getName());
@@ -25,6 +26,8 @@ class StationTest {
         assertEquals("123 Main St", station.getAddress());
         assertEquals(10, station.getCapacity());
         assertEquals(StationOperationalState.ACTIVE, station.getOperationalState());
+        System.out.println("[STATE] Station " + station.getName() + " bikesAvailable=" + station.getBikesAvailable() + "/" + station.getCapacity());
+        System.out.println("[OK] Validated station creation with correct properties.");
     }
 
     @Test
@@ -48,7 +51,9 @@ class StationTest {
 
     @Test
     void testGetBikesAvailable() {
+        System.out.println("\n=== TEST: StationTest.testGetBikesAvailable ===");
         assertEquals(0, station.getBikesAvailable());
+        System.out.println("[STATE] Station " + station.getName() + " initial bikesAvailable=" + station.getBikesAvailable() + "/" + station.getCapacity());
         
         Bike bike1 = new Bike("BIKE001", BikeType.STANDARD);
         Bike bike2 = new Bike("BIKE002", BikeType.STANDARD);
@@ -57,6 +62,8 @@ class StationTest {
         station.getDocks().get(1).occupy(bike2);
         
         assertEquals(2, station.getBikesAvailable());
+        System.out.println("[STATE] Station " + station.getName() + " bikesAvailable=" + station.getBikesAvailable() + "/" + station.getCapacity());
+        System.out.println("[OK] Validated station bikes available count.");
     }
 
     @Test
@@ -71,7 +78,9 @@ class StationTest {
 
     @Test
     void testGetOccupancyStatus() {
+        System.out.println("\n=== TEST: StationTest.testGetOccupancyStatus ===");
         assertEquals(StationOccupancyState.EMPTY, station.getOccupancyStatus());
+        System.out.println("[STATE] Station " + station.getName() + " occupancy: " + station.getOccupancyStatus() + " (bikesAvailable=" + station.getBikesAvailable() + "/" + station.getCapacity() + ")");
         
         // Fill all docks
         Bike bike = new Bike("BIKE001", BikeType.STANDARD);
@@ -80,11 +89,14 @@ class StationTest {
         }
         
         assertEquals(StationOccupancyState.FULL, station.getOccupancyStatus());
+        System.out.println("[STATE] Station " + station.getName() + " occupancy: " + station.getOccupancyStatus() + " (bikesAvailable=" + station.getBikesAvailable() + "/" + station.getCapacity() + ")");
         
         // Release one bike
         station.getDocks().get(0).release();
         
         assertEquals(StationOccupancyState.OCCUPIED, station.getOccupancyStatus());
+        System.out.println("[STATE] Station " + station.getName() + " occupancy: " + station.getOccupancyStatus() + " (bikesAvailable=" + station.getBikesAvailable() + "/" + station.getCapacity() + ")");
+        System.out.println("[OK] Validated station occupancy status transitions (EMPTY → FULL → OCCUPIED).");
     }
 
     @Test
