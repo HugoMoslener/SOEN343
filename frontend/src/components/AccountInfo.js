@@ -110,15 +110,24 @@ export default function AccountInfo() {
 
     const handleSwitchToRider = async () => {
         const response = await fetch(`/api/operator/${username}/rider`);
-        const data = await response.json();
+        // read as text first
+        const text = await response.text();
 
-        if (data === null) {
-            // operator has NO rider → ask for payment
+        if (!text || text.trim() === "" || text.trim() === "null") {
             setShowPaymentModal(true);
-        } else {
-            // operator DOES have rider → switch immediately
-            switchToRider(data);
+            return;
         }
+
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (err) {
+            console.error("Invalid JSON from backend:", text);
+            setShowPaymentModal(true);
+            return;
+        }
+
+        switchToRider(data);
     };
 
     const createRider = async () => {
@@ -133,7 +142,17 @@ export default function AccountInfo() {
             body: JSON.stringify({ paymentInformation: paymentInfo })
         });
 
-        const newRider = await response.json();
+        // backend may return plain text or JSON
+        const text = await response.text();
+
+        let newRider;
+        try {
+            newRider = JSON.parse(text);
+        } catch {
+            console.error("Invalid JSON returned from createRider:", text);
+            alert("Error creating rider account.");
+            return;
+        }
 
         setShowPaymentModal(false);
         switchToRider(newRider);
