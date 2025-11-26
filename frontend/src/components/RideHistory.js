@@ -68,6 +68,7 @@ export default function RideHistory({user = { username: localStorage.getItem("fu
                         bikeType: bikeTypeRaw?.toUpperCase() === "E_BIKE" ? "E-Bike" : "Standard",
                         bikeID: t?.reservation?.bike?.bikeID ?? "",
                         cost: Number(t?.payment?.amount ?? 0),
+                        flexdollarApplied: t.flexdollarApplied ?? 0,
                         startTime: startTimeISO,
                         endTime: endTimeISO,
                         duration,
@@ -155,6 +156,7 @@ export default function RideHistory({user = { username: localStorage.getItem("fu
                     bikeType: bikeTypeRaw?.toUpperCase() === "E_BIKE" ? "E-Bike" : "Standard",
                     bikeID: t?.reservation?.bike?.bikeID ?? "",
                     cost: Number(t?.payment?.amount ?? 0),
+                    flexdollarApplied: t.flexdollarApplied ?? 0,
                     startTime: startTimeISO,
                     endTime: endTimeISO,
                     duration,
@@ -423,6 +425,7 @@ export default function RideHistory({user = { username: localStorage.getItem("fu
                         <h3 className="text-xl font-bold mb-3 text-blue-700">
                             Trip Details — {selectedRide.tripId}
                         </h3>
+
                         <ul className="text-gray-700 space-y-1">
                             <li><strong>Rider:</strong> {selectedRide.rider}</li>
                             <li><strong>Start Station:</strong> {selectedRide.startStation}</li>
@@ -432,8 +435,19 @@ export default function RideHistory({user = { username: localStorage.getItem("fu
                             <li><strong>Bike ID:</strong> {selectedRide.bikeID || "—"}</li>
                             <li><strong>Base Fee:</strong> ${selectedRide.baseFee}</li>
                             <li><strong>Per Minute Rate:</strong> ${selectedRide.perMinuteRate}</li>
+                            <li><strong>Flex dollars applied to discount the price:</strong> ${selectedRide.flexdollarApplied}</li>
                             {selectedRide.eBikeSurcharge > 0 && (
                                 <li><strong>E-Bike Surcharge:</strong> ${selectedRide.eBikeSurcharge}</li>
+                            )}
+                            {selectedRide?.rider?.toLowerCase()?.includes("operator") && (
+                                <li className="text-green-600 font-semibold">
+                                    <strong>Operator Discount:</strong>{" "}
+                                    {selectedRide.perMinuteRate === 4
+                                        ? "10% (Premium Plan)"
+                                        : selectedRide.perMinuteRate === 2
+                                            ? "10% (Premium Pro Plan)"
+                                            : "5% (Base Plan)"}
+                                </li>
                             )}
                             <li>
                                 <strong>Timeline:</strong>{" "}

@@ -6,7 +6,10 @@ import com.TopFounders.domain.Strategy.PricingStrategy;
 import com.TopFounders.domain.factory.RiderCreator;
 import com.TopFounders.domain.model.*;
 import com.TopFounders.domain.observer.Subscriber;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.sql.Time;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -15,30 +18,53 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
+@Component
 public class BMS implements Subscriber {
 
     private static BMS instance;
 
-    private final BikeService bikeService = new BikeService();
-    private final DockService dockService = new DockService();
-    private final StationService stationService  = new StationService();
-    private final ReservationService reservationService  = new ReservationService();
-    private final RiderService riderService  = new RiderService();
-    private final TripService tripService = new TripService();
-    private final UserService userService = new UserService();
+    private final BikeService bikeService;
+    private final DockService dockService;
+    private final StationService stationService;
+    private final ReservationService reservationService;
+    private final RiderService riderService;
+    private final TripService tripService;
+    private final UserService userService;
     private PricingStrategy pricingStrategy;
+    private final TierService tierService;
 
-    private BMS(){}
+    @Autowired
+    public BMS(BikeService bikeService, DockService dockService,
+               StationService stationService, ReservationService reservationService,
+               RiderService riderService, TripService tripService,
+               UserService userService, TierService tierService) {
+        this.bikeService = bikeService;
+        this.dockService = dockService;
+        this.stationService = stationService;
+        this.reservationService = reservationService;
+        this.riderService = riderService;
+        this.tripService = tripService;
+        this.userService = userService;
+        this.tierService = tierService;
+
+        // Set the singleton instance
+        instance = this;
+    }
+
+    @PostConstruct
+    public void init() {
+        instance = this;
+    }
 
     public static BMS getInstance(){
         if(instance == null){
-            instance = new BMS();
+            throw new IllegalStateException("BMS instance not initialized. Make sure Spring context is loaded.");
         }
         return instance;
     }
 
     public void setPricingStrategy(PricingStrategy pricingStrategy){this.pricingStrategy = pricingStrategy;}
-    public double doPricingStrategy(Trip trip){return pricingStrategy.calculateTotal(trip);};
+    public double doPricingStrategy(Trip trip) throws ExecutionException, InterruptedException {return pricingStrategy.calculateTotal(trip);};
 
 
     public String saveRiderData(String username, String paymentInformation, String email, String fullName, String address, String role) throws ExecutionException, InterruptedException {
@@ -162,11 +188,12 @@ public class BMS implements Subscriber {
     }
 
     public Trip dockBike(String username, String reservationID, String dockID, String planID) throws ExecutionException, InterruptedException {
+        // Use the injected tierService field
         if(planID.equals("1")){
-            setPricingStrategy(new BasicPlanStrategy());
+            setPricingStrategy(new BasicPlanStrategy(this.tierService));
         }
         else if(planID.equals("2") || planID.equals("3")) {
-            setPricingStrategy(new PremiumPlanStrategy());
+            setPricingStrategy(new PremiumPlanStrategy(this.tierService));
         }
 
         Reservation reservation = reservationService.getReservationDetails(reservationID);
@@ -180,6 +207,12 @@ public class BMS implements Subscriber {
         Dock dock = dockService.getDockDetails(dockID);
         Station station = stationService.getStationDetails(result);
         Rider rider = riderService.getRiderDetails(reservation.getRider().getUsername());
+
+        if(station.calculateStationOccupancy() == 100){ // For station full when dock is occupied.
+            rider.setFlexMoney(rider.getFlexMoney() + 5.0);
+            riderService.updateRiderDetails(rider);
+            return null;
+        }
 
         if((reservation.getRider().getUsername().equals(username)) & (reservation.getState() == ReservationState.CONFIRMED) & (dock.getState() == DockState.EMPTY) & (station.getOccupancyStatus() != StationOccupancyState.FULL) ){
             Payment payment = trip.getPayment();
@@ -198,13 +231,13 @@ public class BMS implements Subscriber {
             trip.setPricingPlan(pricingPlan);
             trip.setRatePerMinute((Double)(pricingPlan.getRatePerMinute()));
             if(planID.equals("1")) {
-                System.out.println(pricingStrategy.calculateTotal(trip));
                 payment.setAmount(pricingStrategy.calculateTotal(trip));
             }
             else if (planID.equals("2") || planID.equals("3")){
-                System.out.println(pricingStrategy.calculateTotal(trip));
                 payment.setAmount(pricingStrategy.calculateTotal(trip));
             }
+
+            calculateFlexMoney(reservation.getRider().getUsername(),dockID); // calculating flex money
 
 
             // update local bike
@@ -243,6 +276,25 @@ public class BMS implements Subscriber {
         tripService.updateTripDetails(trip);
 
         return "Successful";
+    }
+
+    public String calculateFlexMoney(String username, String dockID) throws ExecutionException, InterruptedException {
+        Dock dock = dockService.getDockDetails(dockID);
+        Station station = stationService.getStationDetails(dock.getStationID());
+
+        if(station.calculateStationOccupancy()< 25.0){
+            Rider rider = riderService.getRiderDetails(username);
+            System.out.println("Availability"+(double)((station.getBikesAvailable())));
+            System.out.println("Capacity"+(double)((station.getCapacity()) ));
+            System.out.println("flexdollar remaining" + rider.getFlexMoney());
+            double flexdollar = rider.getFlexMoney() + 5.0;
+            rider.setFlexMoney(flexdollar);
+            riderService.updateRiderDetails(rider);
+            return "Successful flexdollar insertion";
+        }
+
+        return "Unsuccessful flexdollar insertion";
+
     }
 
     public String moveABikefromDockAToDockB(Dock dockA, Dock dockB,Bike bike) throws ExecutionException, InterruptedException {

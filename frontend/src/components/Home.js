@@ -66,15 +66,21 @@ export default function Home() {
 
     const fetchUserDetails = async (firebaseUser) => {
         try {
-            const email = firebaseUser.email;
-            const username = email.split('@')[0];
+            let storedUsername = localStorage.getItem("username");
 
-            console.log("Fetching user data for:", username);
+            if (!storedUsername) {
+                console.log("No stored username, fallback to firebase user");
+                const email = firebaseUser.email;
+                storedUsername = email.split("@")[0];
+                localStorage.setItem("username", storedUsername);
+            }
+
+            console.log("Fetching user data for:", storedUsername);
 
             const response = await fetch("/api/signIn/getUserData", {
                 method: "POST",
                 headers: { "Content-Type": "text/plain" },
-                body: username
+                body: storedUsername
             });
 
             if (response.ok) {
@@ -84,7 +90,7 @@ export default function Home() {
                 setUserId(userData.username);
                 logMessage(`Welcome ${userData.fullName || userData.username} (${userData.role})`);
             } else {
-                logMessage(`Failed to fetch user details for: ${username}`);
+                logMessage(`Failed to fetch user details for: ${storedUsername}`);
             }
         } catch (error) {
             logMessage(`Error: ${error.message}`);
@@ -205,7 +211,7 @@ export default function Home() {
             body: JSON.stringify(reservationData),
         })
         .then((r) => r.text())
-        .then((result) => {
+        .then(async (result) => {
             if (result && result !== "false") {
                 setIsReserved(true);
                 setReservationID(result);
@@ -219,9 +225,42 @@ export default function Home() {
                 setCount(c => c + 1);
                 setBikesAvailable(stationBikesAvailable);
                 setStationState(stationStatus);
+
+                // GET TIER-BASED HOLD TIME
+            try {
+                const tierResponse = await fetch("/api/signIn/getUserData", {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain" },
+                    body: userId
+                });
+                
+                if (tierResponse.ok) {
+                    const userData = await tierResponse.json();
+                    const baseHoldMinutes = 5;
+                    let extraMinutes = 0;
+                    
+                    // Calculate extra minutes based on tier
+                    if (userData.tier === "SILVER") {
+                        extraMinutes = 2;
+                    } else if (userData.tier === "GOLD") {
+                        extraMinutes = 5;
+                    }
+                    
+                    const totalHoldMinutes = baseHoldMinutes + extraMinutes;
+                    
+                    const now = new Date();
+                    now.setMinutes(now.getMinutes() + totalHoldMinutes);
+                    setReservationExpiry(now.toLocaleTimeString("en-GB", { hour12: false }));
+                    
+                    logMessage(`Reservation hold: ${totalHoldMinutes} minutes (Tier: ${userData.tier})`);
+                }
+            } catch (error) {
+                // Fallback to 5 minutes if tier fetch fails
                 const now = new Date();
                 now.setMinutes(now.getMinutes() + 5);
                 setReservationExpiry(now.toLocaleTimeString("en-GB", { hour12: false }));
+            }
+
                 fetchStations();
             } else {
                 logMessage(`❌ Reservation failed for bike ${bikeID}.`);
@@ -497,6 +536,26 @@ export default function Home() {
             .catch(e => logMessage(`❌ Network error: ${e.message}`));
     }
 
+    // Handle rewarding user for reporting full station
+    const handleStationFullReward = async (stationID) => {
+        try {
+            const response = await fetch("/api/action/reportStationFull", {
+                method: "POST",
+                headers: { "Content-Type": "text/plain" },
+                body: userId
+            });
+
+            const msg = await response.text();
+            logMessage(msg);
+
+            if (msg.includes("Success")) {
+                alert("Station reported full. You earned +5 flex dollars!");
+            }
+        } catch (err) {
+            logMessage("Error rewarding flex dollars: " + err.message);
+        }
+    };
+
     return (
         <div className="flex flex-col gap-4 p-4">
             <h1 className="text-2xl font-bold text-center">Bike Sharing Dashboard</h1>
@@ -635,7 +694,20 @@ export default function Home() {
                                     <p>Capacity: {station.docks.length}</p>
                                     <p>Bikes/Capacity: {station.bikesAvailable}/{station.docks.length}= { Math.round(station.bikesAvailable/station.docks.length * 100)} %</p>
 
-                                    <p>Reservation Hold Time: 5 minutes</p>
+                                    <p>
+                                        Reservation Hold Time:{" "}
+                                        {user?.tier ? 
+                                            (() => {
+                                                const baseTime = 5;
+                                                let extraTime = 0;
+                                                if (user.tier === "SILVER") extraTime = 2;
+                                                if (user.tier === "GOLD") extraTime = 5;
+                                                return `${baseTime + extraTime} minutes (${user.tier} Tier)`;
+                                            })() 
+                                            : "5 minutes (ENTRY Tier)"
+                                        }
+                                    </p>
+                                    
                                     {role === "operator" && (
                                         <button
                                             onClick={() => {handleToggleStationService(station.stationID, station.operationalState);
@@ -645,6 +717,15 @@ export default function Home() {
                                             } text-white px-3 py-1 rounded`}
                                         >
                                             {station.operationalState === 'ACTIVE' ? 'Set Out of Service' : 'Set Active'}
+                                        </button>
+                                    )}
+                                    {/* Rider can report full station for reward */}
+                                    {reservedBike && reservedBike.checkedOut && getOccupancyPercent(station) === 100 && (
+                                        <button
+                                            onClick={() => handleStationFullReward(station.stationID)}
+                                            className="mt-2 bg-purple-600 text-white px-3 py-1 rounded text-xs"
+                                        >
+                                            Report Full Station (+5 Flex)
                                         </button>
                                     )}
 

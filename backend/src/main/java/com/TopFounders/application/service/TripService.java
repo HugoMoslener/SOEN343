@@ -6,11 +6,13 @@ import com.TopFounders.domain.model.Trip;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+@Service
 public class TripService {
     private static final String Collection="trips";
     public TripService(){}
@@ -75,5 +77,24 @@ public class TripService {
         Firestore db = FirestoreClient.getFirestore();
         ApiFuture<WriteResult> writeResult = db.collection(Collection).document(tripID).delete();
         return "Trip with ID  "+tripID+" has been deleted";
+    }
+
+    public ArrayList<Trip> getTripsByRider(String riderUsername)
+            throws InterruptedException, ExecutionException {
+        Firestore db = FirestoreClient.getFirestore();
+        ApiFuture<QuerySnapshot> future = db.collection(Collection).get();
+        List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
+        ArrayList<Trip> tripList = new ArrayList<>();
+        for (QueryDocumentSnapshot doc : documents) {
+            Trip trip = doc.toObject(Trip.class);
+            // Check nested rider username
+            if (trip.getReservation() != null &&
+                    trip.getReservation().getRider() != null &&
+                    riderUsername.equals(trip.getReservation().getRider().getUsername())) {
+                tripList.add(trip);
+            }
+        }
+        return tripList;
     }
 }

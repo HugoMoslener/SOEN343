@@ -68,10 +68,35 @@ public class ActionController {
         try{
             System.out.println("Post request reached here" + dockingHelperClass.getDockID() +":"+dockingHelperClass.getReservationID()+":"+dockingHelperClass.getRiderID());
             MapService.getInstance().setStations(stationService.getAllStations());
-            return BMS.getInstance().dockBike(dockingHelperClass.getRiderID(),dockingHelperClass.getReservationID(),dockingHelperClass.getDockID(),dockingHelperClass.getPlanID() );
+            Trip trip = BMS.getInstance().dockBike(dockingHelperClass.getRiderID(),dockingHelperClass.getReservationID(),dockingHelperClass.getDockID(),dockingHelperClass.getPlanID() );
 
+            // Evaluate and update tier after successful docking
+            if (trip != null) {
+                try {
+                    String riderUsername = dockingHelperClass.getRiderID();
+                    ReservationService reservationService = new ReservationService();
+                    TripService tripService = new TripService();
+
+                    TierService tierService = new TierService(riderService, reservationService, tripService);
+                    Tier newTier = tierService.determineTier(riderUsername);
+
+                    Rider rider = riderService.getRiderDetails(riderUsername);
+                    if (rider != null) {
+                        rider.setTier(newTier);
+                        riderService.updateRiderDetails(rider);  // Save to Firestore
+                        System.out.println("Rider tier updated to: " + newTier);
+                    }
+                } catch (Exception tierException) {
+                    System.out.println("Warning: Could not update tier after docking --> "
+                            + tierException.getMessage());
+                    // Doesn't fail the docking operation if tier update fails
+                }
+            }
+
+            return trip;
         }
         catch (Exception e) {
+            System.out.println("ERROR in BikeDocking --> " + e.getMessage());
             return null;
         }
 
@@ -209,6 +234,54 @@ public class ActionController {
             return "false";
         }
 
+    }
+
+    @PostMapping("/getFlexDollars")
+    public String getFlexDollars(@RequestBody String username ){
+        try{
+            UserService userService = new UserService();
+            User user = userService.getUserDetails(username);
+            if(user.getRole().equals("rider")){
+                Rider rider = riderService.getRiderDetails(username);
+                return String.valueOf(rider.getFlexMoney());
+            }
+           return null;
+        }
+        catch (Exception e) {
+            return "false";
+        }
+
+    }
+
+    @PostMapping("/reportStationFull")
+    public String rewardForFullStation(@RequestBody String username) {
+        try {
+            UserService userService = new UserService();
+            RiderService riderService = new RiderService();
+
+            // get user
+            User user = userService.getUserDetails(username);
+            if (user == null || !user.getRole().equals("rider")) {
+                return "Error: Not a rider.";
+            }
+
+            // get rider object
+            Rider rider = riderService.getRiderDetails(username);
+            if (rider == null) {
+                return "Error: Rider not found.";
+            }
+
+            // add 5 flex dollars
+            double updatedFlex = rider.getFlexMoney() + 5;
+            rider.setFlexMoney(updatedFlex);
+
+            // save back to DB
+            riderService.updateRiderDetails(rider);
+
+            return "Success: Rider awarded +5 flex dollars.";
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
     }
 
 

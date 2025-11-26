@@ -1,8 +1,14 @@
 package com.TopFounders.domain.Strategy;
 
+import com.TopFounders.application.service.ReservationService;
+import com.TopFounders.application.service.RiderService;
+import com.TopFounders.application.service.TierService;
+import com.TopFounders.application.service.TripService;
 import com.TopFounders.domain.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -13,10 +19,15 @@ class BasicPlanStrategyTest {
     private Payment payment;
     private PricingPlan pricingPlan;
     private Reservation reservation;
+    private TierService tierService;
 
     @BeforeEach
     void setUp() {
-        strategy = new BasicPlanStrategy();
+        RiderService riderService = new RiderService();
+        ReservationService reservationService = new ReservationService();
+        TripService tripService = new TripService();
+        tierService = new TierService(riderService, reservationService, tripService);
+        strategy = new BasicPlanStrategy(tierService);
         payment = new Payment("credit", 0.0);
         pricingPlan = new PricingPlan("1");
         pricingPlan.setPricingPlan1(); // Base fee: 15.0, Rate per minute: 10.0
@@ -36,9 +47,10 @@ class BasicPlanStrategyTest {
     }
 
     @Test
-    void testCalculateTotalWithStandardBike() {
+    void testCalculateTotalWithStandardBike() throws ExecutionException, InterruptedException {
         System.out.println("\n=== TEST: BasicPlanStrategyTest.testCalculateTotalWithStandardBike ===");
         // Expected: baseFee (15.0) + (30 minutes * 10.0 per minute) = 15.0 + 300.0 = 315.0
+        // Note: New riders default to ENTRY tier (0% discount), so base price should match
         double total = strategy.calculateTotal(trip);
         assertEquals(315.0, total, 0.01);
         System.out.println("[PRICE] Base fee: $" + trip.getPricingPlan().getBaseFee() + ", Duration: 30 min, Rate: $" + trip.getRatePerMinute() + "/min, Total: $" + String.format("%.2f", total));
@@ -46,7 +58,7 @@ class BasicPlanStrategyTest {
     }
 
     @Test
-    void testCalculateTotalWithEBike() {
+    void testCalculateTotalWithEBike() throws ExecutionException, InterruptedException {
         System.out.println("\n=== TEST: BasicPlanStrategyTest.testCalculateTotalWithEBike ===");
         // Create reservation with E_BIKE
         Rider rider = new Rider("rider1", "payment123", "rider@test.com", "John Doe", "123 St", "rider");
@@ -55,6 +67,7 @@ class BasicPlanStrategyTest {
         trip.setReservation(eBikeReservation);
         
         // Expected: baseFee (15.0) + (30 minutes * 10.0 per minute) + 20.0 (E_BIKE surcharge) = 335.0
+        // Note: New riders default to ENTRY tier (0% discount)
         double total = strategy.calculateTotal(trip);
         assertEquals(335.0, total, 0.01);
         System.out.println("[PRICE] Base fee: $" + trip.getPricingPlan().getBaseFee() + ", Duration: 30 min, Rate: $" + trip.getRatePerMinute() + "/min, E-bike surcharge: $20.00, Total: $" + String.format("%.2f", total));
@@ -62,7 +75,7 @@ class BasicPlanStrategyTest {
     }
 
     @Test
-    void testCalculateTotalWithShortTrip() {
+    void testCalculateTotalWithShortTrip() throws ExecutionException, InterruptedException {
         System.out.println("\n=== TEST: BasicPlanStrategyTest.testCalculateTotalWithShortTrip ===");
         String startTime = "10:00:00";
         String endTime = "10:05:00"; // 5 minutes
@@ -77,7 +90,7 @@ class BasicPlanStrategyTest {
     }
 
     @Test
-    void testCalculateTotalWithLongTrip() {
+    void testCalculateTotalWithLongTrip() throws ExecutionException, InterruptedException {
         System.out.println("\n=== TEST: BasicPlanStrategyTest.testCalculateTotalWithLongTrip ===");
         String startTime = "10:00:00";
         String endTime = "11:30:00"; // 90 minutes
@@ -92,7 +105,7 @@ class BasicPlanStrategyTest {
     }
 
     @Test
-    void testCalculateTotalReturnsPositiveValue() {
+    void testCalculateTotalReturnsPositiveValue() throws ExecutionException, InterruptedException {
         System.out.println("\n=== TEST: BasicPlanStrategyTest.testCalculateTotalReturnsPositiveValue ===");
         double total = strategy.calculateTotal(trip);
         assertTrue(total > 0, "Total should be positive");
@@ -101,7 +114,7 @@ class BasicPlanStrategyTest {
     }
 
     @Test
-    void testCalculateTotalWithDifferentPricingPlan() {
+    void testCalculateTotalWithDifferentPricingPlan() throws ExecutionException, InterruptedException {
         System.out.println("\n=== TEST: BasicPlanStrategyTest.testCalculateTotalWithDifferentPricingPlan ===");
         PricingPlan plan2 = new PricingPlan("2");
         plan2.setPricingPlan2(); // Base fee: 30.0, Rate per minute: 4.0

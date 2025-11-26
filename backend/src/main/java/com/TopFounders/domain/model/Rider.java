@@ -8,16 +8,29 @@ import java.util.concurrent.ExecutionException;
 public class Rider extends User{
 
     private String paymentInformation;
+    private double flexMoney = 0.0;
+    private Tier tier;
 
     public Rider() {
     }
     public Rider(String username, String paymentInformation, String email, String fullName, String address, String role) {
         super(username,email, fullName,address,role);
         this.paymentInformation = paymentInformation;
+        this.tier = Tier.ENTRY;
     }
+
+    public Tier getTier() { return tier; }
+
+    public void setTier(Tier tier) { this.tier = tier; }
+
+    public void setFlexMoney(double flexMoney) {this.flexMoney = flexMoney;}
+
+    public double  getFlexMoney() {return this.flexMoney;}
+
     public String getPaymentInformation(){
         return paymentInformation;
     }
+
     public void setPaymentInformation(String paymentInformation){
         this.paymentInformation= paymentInformation;
     }

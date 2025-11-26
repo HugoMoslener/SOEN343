@@ -4,17 +4,19 @@ import com.TopFounders.domain.model.Bike;
 import com.TopFounders.domain.model.BikeType;
 import com.TopFounders.domain.model.Dock;
 import com.TopFounders.domain.model.Station;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
+@Service
 public class MapService {
     private static MapService instance;
     private ArrayList<Station> stations;
 
     private MapService(){}
 
-    public static MapService getInstance(){
+    public static synchronized MapService getInstance(){
         if(instance == null){
             instance = new MapService();
         }

@@ -14,13 +14,9 @@ public class Bike implements Publisher {
 
     // Getters
     // Attributes
-    @Getter
-    private  String bikeID;
-    @Getter
-    @Setter
+    String bikeID;
     private String dockID;
     // Setters
-    @Getter
     private String stateString; // this is just a variable that copies the BikeState enum but in a string format
     private  BikeType type;
 
@@ -111,7 +107,11 @@ public class Bike implements Publisher {
     }
     @Override
     public void notifySubscribers(String eventType){
-        subscribe(BMS.getInstance());
+        try {
+            subscribe(BMS.getInstance());
+        } catch (IllegalStateException e) {
+            // BMS not initialized (e.g., in unit tests) - continue without it
+        }
         for (Subscriber subscriber : subscribers){
             subscriber.update(eventType, this);
         }
@@ -156,4 +156,31 @@ public class Bike implements Publisher {
         }
     }
 
+    public String getBikeID() {
+        return bikeID;
+    }
+
+    public void setBikeID(String bikeID) {
+        this.bikeID = bikeID;
+    }
+
+    public String getDockID() {
+        return dockID;
+    }
+
+    public void setDockID(String dockID) {
+        this.dockID = dockID;
+    }
+
+    public String getStateString() {
+        return stateString;
+    }
+
+    public void setType(BikeType type) {
+        this.type = type;
+    }
+
+    public void setState(BikeState state) {
+        this.state = state;
+    }
 }

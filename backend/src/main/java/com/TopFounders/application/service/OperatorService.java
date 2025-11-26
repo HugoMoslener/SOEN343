@@ -1,5 +1,7 @@
 package com.TopFounders.application.service;
+import com.TopFounders.domain.factory.RiderCreator;
 import com.TopFounders.domain.model.Operator;
+import com.TopFounders.domain.model.Rider;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
@@ -32,6 +34,89 @@ public class OperatorService {
         }
 
 
+    }
+
+    // Getting the operator's rider account
+    public Rider getRiderFromOperator(String operatorUsername) throws ExecutionException, InterruptedException {
+
+        Firestore db = FirestoreClient.getFirestore();
+
+        // 1. Fetch operator
+        DocumentReference operatorRef = db.collection(User_Collection).document(operatorUsername);
+        DocumentSnapshot operatorSnap = operatorRef.get().get();
+
+        if (!operatorSnap.exists()) {
+            return null;
+        }
+
+        Operator operator = operatorSnap.toObject(Operator.class);
+
+        // 2. Check if linkedRider exists
+        if (operator.getLinkedRider() == null || operator.getLinkedRider().isEmpty()) {
+            return null;
+        }
+
+        String riderUsername = operator.getLinkedRider();
+
+        // 3. Fetch Rider Object
+        DocumentReference riderRef = db.collection(User_Collection).document(riderUsername);
+        DocumentSnapshot riderSnap = riderRef.get().get();
+
+        if (!riderSnap.exists()) {
+            return null;
+        }
+
+        return riderSnap.toObject(Rider.class);
+    }
+
+    // Creating a rider for the operator who doesn't have one yet
+    public Rider createRiderForOperator(String operatorUsername, String paymentInfo)
+            throws ExecutionException, InterruptedException {
+
+        Firestore db = FirestoreClient.getFirestore();
+
+        // 1. Fetch operator
+        DocumentReference operatorRef = db.collection(User_Collection).document(operatorUsername);
+        DocumentSnapshot operatorSnap = operatorRef.get().get();
+
+        if (!operatorSnap.exists()) {
+            throw new RuntimeException("Operator does not exist: " + operatorUsername);
+        }
+
+        Operator operator = operatorSnap.toObject(Operator.class);
+
+        // 2. Compute rider username
+        String riderUsername = operatorUsername + "-rider"; // <operator_name>-rider
+
+        // 3. Build rider object
+        RiderCreator creator = new RiderCreator();
+        Rider rider = creator.createUser(
+                riderUsername,
+                paymentInfo,
+                operator.getEmail(),
+                operator.getFullName(),
+                operator.getAddress(),
+                "rider"
+        );
+
+        rider.setFlexMoney(0.0);
+
+        // 4. Save rider
+        ApiFuture<WriteResult> riderSave = db.collection(User_Collection)
+                .document(riderUsername)
+                .set(rider);
+        riderSave.get();
+
+        // 5. Link operator → rider
+        operator.setLinkedRider(riderUsername);
+
+        ApiFuture<WriteResult> operatorSave = db.collection(User_Collection)
+                .document(operator.getUsername())
+                .set(operator);
+        operatorSave.get();
+
+        // 6. Return Rider object so controller can perform login switch
+        return rider;
     }
 
     public Operator getOperatorDetails(String username) throws InterruptedException, ExecutionException {
