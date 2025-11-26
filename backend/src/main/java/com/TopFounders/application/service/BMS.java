@@ -188,11 +188,12 @@ public class BMS implements Subscriber {
     }
 
     public Trip dockBike(String username, String reservationID, String dockID, String planID) throws ExecutionException, InterruptedException {
+        // Use the injected tierService field
         if(planID.equals("1")){
-            setPricingStrategy(new BasicPlanStrategy(tierService));
+            setPricingStrategy(new BasicPlanStrategy(this.tierService));
         }
         else if(planID.equals("2") || planID.equals("3")) {
-            setPricingStrategy(new PremiumPlanStrategy(tierService));
+            setPricingStrategy(new PremiumPlanStrategy(this.tierService));
         }
 
         Reservation reservation = reservationService.getReservationDetails(reservationID);

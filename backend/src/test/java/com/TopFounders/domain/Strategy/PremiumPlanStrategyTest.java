@@ -1,8 +1,14 @@
 package com.TopFounders.domain.Strategy;
 
+import com.TopFounders.application.service.ReservationService;
+import com.TopFounders.application.service.RiderService;
+import com.TopFounders.application.service.TierService;
+import com.TopFounders.application.service.TripService;
 import com.TopFounders.domain.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -13,10 +19,15 @@ class PremiumPlanStrategyTest {
     private Payment payment;
     private PricingPlan pricingPlan;
     private Reservation reservation;
+    private TierService tierService;
 
     @BeforeEach
     void setUp() {
-        strategy = new PremiumPlanStrategy();
+        RiderService riderService = new RiderService();
+        ReservationService reservationService = new ReservationService();
+        TripService tripService = new TripService();
+        tierService = new TierService(riderService, reservationService, tripService);
+        strategy = new PremiumPlanStrategy(tierService);
         payment = new Payment("credit", 0.0);
         pricingPlan = new PricingPlan("2");
         pricingPlan.setPricingPlan2(); // Base fee: 30.0, Rate per minute: 4.0
@@ -36,7 +47,7 @@ class PremiumPlanStrategyTest {
     }
 
     @Test
-    void testCalculateTotalWithStandardBike() {
+    void testCalculateTotalWithStandardBike() throws ExecutionException, InterruptedException {
         System.out.println("\n=== TEST: PremiumPlanStrategyTest.testCalculateTotalWithStandardBike ===");
         // Expected: baseFee (30.0) + (30 minutes * 4.0 per minute) = 30.0 + 120.0 = 150.0
         // Note: Premium plan does NOT add E_BIKE surcharge
@@ -47,7 +58,7 @@ class PremiumPlanStrategyTest {
     }
 
     @Test
-    void testCalculateTotalWithEBike() {
+    void testCalculateTotalWithEBike() throws ExecutionException, InterruptedException {
         System.out.println("\n=== TEST: PremiumPlanStrategyTest.testCalculateTotalWithEBike ===");
         // Create reservation with E_BIKE
         Rider rider = new Rider("rider1", "payment123", "rider@test.com", "John Doe", "123 St", "rider");
@@ -64,7 +75,7 @@ class PremiumPlanStrategyTest {
     }
 
     @Test
-    void testCalculateTotalWithShortTrip() {
+    void testCalculateTotalWithShortTrip() throws ExecutionException, InterruptedException {
         System.out.println("\n=== TEST: PremiumPlanStrategyTest.testCalculateTotalWithShortTrip ===");
         String startTime = "10:00:00";
         String endTime = "10:05:00"; // 5 minutes
@@ -79,7 +90,7 @@ class PremiumPlanStrategyTest {
     }
 
     @Test
-    void testCalculateTotalWithLongTrip() {
+    void testCalculateTotalWithLongTrip() throws ExecutionException, InterruptedException {
         System.out.println("\n=== TEST: PremiumPlanStrategyTest.testCalculateTotalWithLongTrip ===");
         String startTime = "10:00:00";
         String endTime = "11:30:00"; // 90 minutes
@@ -94,7 +105,7 @@ class PremiumPlanStrategyTest {
     }
 
     @Test
-    void testCalculateTotalReturnsPositiveValue() {
+    void testCalculateTotalReturnsPositiveValue() throws ExecutionException, InterruptedException {
         System.out.println("\n=== TEST: PremiumPlanStrategyTest.testCalculateTotalReturnsPositiveValue ===");
         double total = strategy.calculateTotal(trip);
         assertTrue(total > 0, "Total should be positive");
@@ -103,7 +114,7 @@ class PremiumPlanStrategyTest {
     }
 
     @Test
-    void testCalculateTotalWithDifferentPricingPlan() {
+    void testCalculateTotalWithDifferentPricingPlan() throws ExecutionException, InterruptedException {
         System.out.println("\n=== TEST: PremiumPlanStrategyTest.testCalculateTotalWithDifferentPricingPlan ===");
         PricingPlan plan3 = new PricingPlan("3");
         plan3.setPricingPlan3(); // Base fee: 50.0, Rate per minute: 2.0
@@ -118,7 +129,7 @@ class PremiumPlanStrategyTest {
     }
 
     @Test
-    void testPremiumPlanNoEBikeSurcharge() {
+    void testPremiumPlanNoEBikeSurcharge() throws ExecutionException, InterruptedException {
         System.out.println("\n=== TEST: PremiumPlanStrategyTest.testPremiumPlanNoEBikeSurcharge ===");
         // Verify that Premium plan does not add E_BIKE surcharge
         Rider rider = new Rider("rider1", "payment123", "rider@test.com", "John Doe", "123 St", "rider");

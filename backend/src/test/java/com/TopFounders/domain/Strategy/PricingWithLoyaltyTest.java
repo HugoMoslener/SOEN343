@@ -1,8 +1,14 @@
 package com.TopFounders.domain.Strategy;
 
+import com.TopFounders.application.service.ReservationService;
+import com.TopFounders.application.service.RiderService;
+import com.TopFounders.application.service.TierService;
+import com.TopFounders.application.service.TripService;
 import com.TopFounders.domain.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -45,11 +51,16 @@ class PricingWithLoyaltyTest {
     }
 
     @Test
-    void testBasePricingForThirtyMinuteTrip() {
+    void testBasePricingForThirtyMinuteTrip() throws ExecutionException, InterruptedException {
         System.out.println("\n=== TEST: PricingWithLoyaltyTest.testBasePricingForThirtyMinuteTrip ===");
         // Test current base pricing calculation using BasicPlanStrategy
-        BasicPlanStrategy pricingStrategy = new BasicPlanStrategy();
+        RiderService riderService = new RiderService();
+        ReservationService reservationService = new ReservationService();
+        TripService tripService = new TripService();
+        TierService tierService = new TierService(riderService, reservationService, tripService);
+        BasicPlanStrategy pricingStrategy = new BasicPlanStrategy(tierService);
         double calculated = pricingStrategy.calculateTotal(trip);
+        // Note: New riders default to ENTRY tier (0% discount), so base price should match
         assertEquals(315.0, calculated, 0.01, "Base price should be 15 (base fee) + (30 minutes * 10 rate) = 315");
         System.out.println("[PRICE] Base price for 30-minute trip with plan 1 = $" + String.format("%.2f", calculated));
         System.out.println("[OK] Validated base pricing calculation for 30-minute trip.");
